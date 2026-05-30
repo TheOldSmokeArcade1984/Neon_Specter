@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline';">
+    <title>NEON SPECTER • INFILTRAZIONE</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Nuova Palette Modern Neon / Cyberpunk */
+            --bg-deep: #05050a;
+            --bg-panel: rgba(10, 10, 20, 0.65);
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff00ea;
+            --neon-purple: #b026ff;
+            --neon-yellow: #fcee0a;
+            --text-main: #e0eaff;
+            
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        * { box-sizing: border-box; touch-action: none; }
+        body { margin:0; padding:0; background: var(--bg-deep); color: var(--neon-cyan); font-family: var(--font-display); overflow:hidden; height:100vh; width: 100vw; }
+
+        #home, #game-screen { position:absolute; width:100%; height:100%; }
+
+        /* Canvas Terminale */
+        canvas#game-canvas { 
+            display:block; 
+            image-rendering:pixelated; 
+            position: absolute; 
+            border: 1px solid rgba(0, 243, 255, 0.3); 
+            border-radius: 12px; 
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.15), inset 0 0 20px rgba(176, 38, 255, 0.1); 
+            background: transparent;
+            transition: opacity 0.5s;
+        }
+
+        .matrix-bg { position:absolute; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none; opacity: 0.8; }
+
+        .content { position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center; padding: 20px;}
+
+        h1 { 
+            font-size:clamp(40px, 8vw, 92px); 
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-purple), 0 0 40px var(--neon-purple); 
+            margin:0 0 10px 0; letter-spacing:6px; 
+        }
+        
+        .subtitle { 
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size:clamp(14px, 3vw, 22px); 
+            margin-bottom:40px; 
+            color: var(--neon-pink);
+            text-shadow:0 0 15px var(--neon-pink); 
+            letter-spacing: 2px;
+        }
+
+        #lang-title { font-size:clamp(14px, 2vw, 18px); margin-bottom:20px; letter-spacing:3px; color: var(--text-main); font-family: var(--font-body); }
+        .lang-grid { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:30px; max-width: 600px;}
+        .lang-item { 
+            cursor:pointer; text-align:center; padding:12px 20px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            background: var(--bg-panel);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            width: 100px; font-size: 16px; color: var(--text-main);
+        }
+        .lang-item:hover, .lang-item.selected { 
+            border-color: var(--neon-cyan); 
+            color: var(--neon-cyan);
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 20px rgba(0, 243, 255, 0.2); 
+        }
+        .flag { font-size:24px; display:block; margin-bottom:8px; }
+
+        #start-btn { 
+            margin-top:20px; padding:15px 50px; 
+            border: 2px solid var(--neon-cyan); 
+            border-radius: 50px;
+            opacity:0.4; pointer-events:none; cursor:default; 
+            font-size:22px; font-family: var(--font-display); font-weight: 700;
+            transition:all 0.3s; background:transparent; color: var(--neon-cyan); 
+            letter-spacing: 2px;
+        }
+        #start-btn.active { opacity:1; pointer-events:auto; cursor:pointer; box-shadow:0 0 25px rgba(0, 243, 255, 0.4); }
+        #start-btn.active:hover { background: var(--neon-cyan); color: #000; box-shadow:0 0 40px rgba(0, 243, 255, 0.6); transform: scale(1.05); }
+
+        /* PRIVACY MODAL - Glassmorphism */
+        #privacy-modal {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 10, 0.8); backdrop-filter: blur(8px); z-index: 200; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; padding: 20px;
+            pointer-events: auto;
+        }
+        .privacy-box {
+            border: 1px solid rgba(0, 243, 255, 0.3); background: rgba(10, 10, 25, 0.9); 
+            padding: 40px; border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.05); 
+            max-width: 650px; pointer-events: auto;
+        }
+        .privacy-box h2 { font-size: clamp(20px, 3vw, 28px); margin-top: 0; color: var(--neon-cyan); letter-spacing: 2px; }
+        .privacy-box p { font-family: var(--font-body); font-size: clamp(14px, 2vw, 16px); line-height: 1.6; color: var(--text-main); margin-bottom: 35px; opacity: 0.9; }
+        .privacy-btns { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .privacy-btn { 
+            padding: 12px 30px; border: 1px solid var(--neon-cyan); background: rgba(0, 243, 255, 0.1); 
+            color: var(--neon-cyan); font-family: var(--font-display); font-size: 18px; 
+            border-radius: 8px; cursor: pointer; transition: 0.3s; letter-spacing: 1px;
+        }
+        .privacy-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.5); transform:translateY(-3px); }
+        .privacy-btn.decline { border-color: var(--neon-pink); color: var(--neon-pink); background: rgba(255, 0, 234, 0.1); }
+        .privacy-btn.decline:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 20px rgba(255, 0, 234, 0.5); }
+
+        #game-screen { display:none; justify-content:center; align-items:center; background: radial-gradient(circle at center, #0a0a1a 0%, #020205 100%); }
+
+        .game-wrapper { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; z-index:10; pointer-events: auto;}
+        .game-wrapper canvas { pointer-events: auto; } 
+
+        /* HUD - Modern Glass */
+        .hud { 
+            position:absolute; top:15px; left:50%; transform:translateX(-50%); 
+            color: var(--text-main); font-size:clamp(12px, 1.5vw, 16px); letter-spacing: 1px;
+            display:flex; gap:15px; z-index:15; 
+            background: rgba(10, 10, 25, 0.5); backdrop-filter: blur(10px);
+            padding:10px 25px; border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; 
+            flex-wrap: wrap; justify-content: center; 
+            width: max-content; max-width: 90%; 
+            pointer-events: auto; transition: opacity 0.5s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        #fullscreen-btn, #sound-btn, #reset-btn { 
+            position: absolute; z-index: 100; 
+            color: var(--text-main); border: 1px solid rgba(255,255,255,0.2); 
+            background: rgba(10,10,25,0.6); backdrop-filter: blur(5px);
+            padding: 10px 15px; font-size: 16px; cursor: pointer; border-radius: 8px; 
+            font-family: var(--font-display); transition: 0.3s; pointer-events: auto;
+        }
+        #fullscreen-btn { top: 15px; right: 20px; }
+        #sound-btn { top: 15px; left: 20px; width: 110px; }
+        #reset-btn { top: 65px; left: 20px; width: 110px; } 
+        
+        #fullscreen-btn:hover, #sound-btn:hover, #reset-btn:hover { background: var(--text-main); color: #000; box-shadow: 0 0 15px rgba(255,255,255,0.5);}
+
+        /* STILE PROMPT HACKER */
+        #typewriter-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 10, 0.9); backdrop-filter: blur(5px); z-index: 50; display: none;
+            flex-direction: column; justify-content: center; align-items: center;
+            padding: 40px; cursor: pointer; pointer-events: auto; transition: background 0.5s;
+        }
+        #typewriter-text {
+            color: var(--neon-cyan); font-family: var(--font-display); font-size: clamp(14px, 2.5vw, 24px);
+            text-shadow: 0 0 8px var(--neon-cyan); max-width: 800px; line-height: 1.8; text-align: left;
+            letter-spacing: 1px;
+        }
+        .cursor-blink::after { content: '█'; animation: blink 1s step-end infinite; margin-left: 8px; color: var(--neon-pink); }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .scanline { position:absolute; top:0; left:0; width:100%; height:100%; background:linear-gradient(to bottom, transparent 50%, rgba(0, 243, 255, 0.05) 50%); background-size:100% 4px; pointer-events:none; z-index:25; opacity:0.5; }
+
+        /* CONTROLLI TOUCH */
+        #touch-controls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 90; transition: opacity 0.5s; }
+        
+        #joystick-base {
+            position: absolute; bottom: 40px; left: 40px; width: 130px; height: 130px;
+            background: rgba(0, 243, 255, 0.05); border: 2px solid rgba(0, 243, 255, 0.2);
+            border-radius: 50%; pointer-events: auto; touch-action: none; user-select: none;
+            backdrop-filter: blur(4px);
+        }
+        #joystick-stick {
+            position: absolute; top: 35px; left: 35px; width: 60px; height: 60px;
+            background: rgba(0, 243, 255, 0.4); border-radius: 50%; pointer-events: none;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.5); transition: transform 0.1s ease-out;
+        }
+
+        #act-btn {
+            position: absolute; bottom: 50px; right: 40px; width: 100px; height: 100px;
+            background: rgba(255, 0, 234, 0.05); border: 2px solid rgba(255, 0, 234, 0.3); border-radius: 50%;
+            color: var(--neon-pink); display: flex; justify-content: center; align-items: center;
+            font-size: 24px; font-family: var(--font-display); pointer-events: auto; user-select: none;
+            box-shadow: 0 0 20px rgba(255, 0, 234, 0.1); transition: 0.1s; touch-action: none;
+            backdrop-filter: blur(4px);
+        }
+
+        /* EFFETTO INTRO */
+        #game-screen.intro-mode #game-canvas,
+        #game-screen.intro-mode .hud,
+        #game-screen.intro-mode #touch-controls { visibility: hidden; opacity: 0; }
+        #game-screen.intro-mode #typewriter-overlay { background: rgba(5, 5, 10, 0.5); }
+
+        /* AVVISO LANDSCAPE */
+        #landscape-warning {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--bg-deep); color: var(--neon-cyan); z-index: 99999;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
+        .landscape-icon { font-size: 60px; margin-bottom: 20px; animation: tiltPhone 2s infinite ease-in-out; }
+        .landscape-text { font-size: 24px; font-weight: 700; margin: 5px 0; letter-spacing: 2px; }
+        .landscape-sub { font-family: var(--font-body); font-size: 16px; opacity: 0.7; }
+        @keyframes tiltPhone { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
+
+        /* MEDIA QUERIES PER TOUCH */
+        @media (max-width: 1200px), (pointer: coarse) {
+            #touch-controls { display: block; }
+            .hud { font-size: 10px; padding: 8px 15px; gap: 10px; top: 10px;}
+            #fullscreen-btn { top: 10px; right: 10px; font-size: 14px; padding: 8px 12px;}
+            #sound-btn { top: 10px; left: 10px; font-size: 14px; padding: 8px 12px; width: 90px;}
+            #reset-btn { top: 55px; left: 10px; font-size: 14px; padding: 8px 12px; width: 90px;}
+        }
+
+        @media screen and (max-height: 500px) {
+            #joystick-base { width: 100px; height: 100px; bottom: 15px; left: 20px; }
+            #joystick-stick { width: 50px; height: 50px; top: 25px; left: 25px; }
+            #act-btn { width: 80px; height: 80px; bottom: 25px; right: 25px; font-size: 20px; }
+            .hud { font-size: 10px; padding: 6px 15px; }
+        }
+
+        @media screen and (max-width: 900px) and (orientation: portrait) {
+            #landscape-warning { display: flex; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="landscape-warning">
+        <div class="landscape-icon">📱</div>
+        <div class="landscape-text">SYSTEM OVERRIDE: ROTATE DEVICE</div>
+        <div class="landscape-sub">Please rotate to landscape mode to initialize.</div>
+    </div>
+
+    <div id="privacy-modal">
+        <div class="privacy-box">
+            <h2 id="priv-title">SECURITY PROTOCOL: PRIVACY</h2>
+            <p id="priv-desc">Questo terminale richiede l'accesso al Local Storage per salvare i progressi dell'operazione e le impostazioni. Consenti l'accesso alla memoria?</p>
+            <div class="privacy-btns">
+                <button class="privacy-btn decline" id="btn-decline" onclick="declinePrivacy()">[ RIFIUTA ]</button>
+                <button class="privacy-btn" id="btn-accept" onclick="acceptPrivacy()">[ ACCETTA ]</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="sound-btn" onclick="toggleSound()">[🔊 ON]</button>
+    <button id="reset-btn" onclick="confirmReset()">[↺ RESET]</button>
+    <button id="fullscreen-btn" onclick="toggleFullscreen()">[⛶]</button>
+
+    <div id="home">
+        <canvas id="matrix-bg" class="matrix-bg"></canvas>
+        <div class="content">
+            <h1>NEON SPECTER</h1>
+            <div id="subtitle" class="subtitle">INFILTRATION PROTOCOL v2.0</div>
+            <p id="lang-title">SELECT SYSTEM LANGUAGE</p>
+            <div class="lang-grid">
+                <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('it', this)"><span class="flag">🇮🇹</span>ITA</div>
+                <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('en', this)"><span class="flag">🇬🇧</span>ENG</div>
+                <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('fr', this)"><span class="flag">🇫🇷</span>FRA</div>
+                <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('es', this)"><span class="flag">🇪🇸</span>ESP</div>
+                <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('de', this)"><span class="flag">🇩🇪</span>DEU</div>
+            </div>
+            <button id="start-btn" onpointerenter="playSFX('hover')" onclick="startGameClick()">INITIATE LINK</button>
+        </div>
+    </div>
+
+    <div id="game-screen">
+        <canvas id="matrix-bg-game" class="matrix-bg"></canvas>
+        <div class="game-wrapper" id="game-wrapper-layer">
+            <canvas id="game-canvas" width="1600" height="900" style="z-index:12;"></canvas>
+            
+            <div class="hud" id="main-hud">
+                <div id="hud-city">NODE: -</div>
+                <div id="hud-objectives">DATA: 0/0</div>
+                <div id="hud-status" style="color: var(--neon-pink);">STATUS: STANDBY</div>
+                <div id="hud-geo" style="color: var(--neon-cyan);">GEO: 00.00° N | 00.00° E</div>
+            </div>
+            
+            <div id="typewriter-overlay" onclick="skipTypewriter()">
+                <div id="typewriter-text" class="cursor-blink"></div>
+            </div>
+
+            <div class="scanline"></div>
+
+            <div id="touch-controls">
+                <div id="joystick-base">
+                    <div id="joystick-stick"></div>
+                </div>
+                <div id="act-btn">ACT</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Palette JS per l'utilizzo nel Canvas
+        const PALETTE = {
+            cyan: '#00f3ff',
+            pink: '#ff00ea',
+            purple: '#b026ff',
+            yellow: '#fcee0a',
+            bgDeep: '#05050a',
+            bgMap: '#0a0a1a',
+            bgGrid: '#050510'
+        };
+
+        // --- SISTEMA DI SICUREZZA PER MEMORIA ---
+        let privacyConsented = null;
+        let allowStorage = false;
+        let soundEnabled = true;
+        let completedCities = [];
+
+        try {
+            privacyConsented = localStorage.getItem('neonShadows_privacy');
+            allowStorage = (privacyConsented === 'true');
+            
+            if (allowStorage) {
+                let savedSound = localStorage.getItem('neonShadows_sound');
+                if (savedSound !== null) soundEnabled = (savedSound !== 'false');
+                
+                let savedCities = localStorage.getItem('neonShadows_completed');
+                if (savedCities) {
+                    completedCities = JSON.parse(savedCities);
+                }
+            }
+        } catch(e) {
+            console.warn("Storage bloccato o corrotto. Modalità volatile attivata automaticamente.");
+            allowStorage = false;
+        }
+
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            if (allowStorage) {
+                try { localStorage.setItem('neonShadows_sound', soundEnabled); } catch(e) {}
+            }
+            const btn = document.getElementById('sound-btn');
+            if (soundEnabled) {
+                btn.textContent = "[🔊 ON]";
+                initAudio();
+                playSFX('click');
+            } else {
+                btn.textContent = "[🔇 OFF]";
+            }
+        }
+
+        function confirmReset() {
+            playSFX('click');
+            const msg = LANG_TEXTS[currentLang]?.confirmReset || "Are you sure you want to reset all progress?";
+            if (confirm(msg)) {
+                try {
+                    localStorage.removeItem('neonShadows_completed');
+                    localStorage.removeItem('neonShadows_sound');
+                    localStorage.removeItem('neonShadows_privacy');
+                } catch(e) {}
+                location.reload(); 
+            }
+        }
+
+        function saveProgress() {
+            if (allowStorage) {
+                try {
+                    localStorage.setItem('neonShadows_completed', JSON.stringify(completedCities));
+                } catch(e) {}
+            }
+        }
+
+        function playSFX(type) {
+            if (!soundEnabled || !audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            switch (type) {
+                case 'hover':
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                    break;
+                case 'click':
+                    osc.type = 'square'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                    break;
+                case 'type':
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(800 + Math.random() * 200, now);
+                    gain.gain.setValueAtTime(0.02, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    osc.start(now); osc.stop(now + 0.04);
+                    break;
+                case 'shoot':
+                    osc.type = 'square'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.start(now); osc.stop(now + 0.15);
+                    break;
+                case 'collect':
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(880, now); osc.frequency.exponentialRampToValueAtTime(1760, now + 0.1); 
+                    gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc.start(now); osc.stop(now + 0.3);
+                    break;
+                case 'hit':
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.start(now); osc.stop(now + 0.4);
+                    break;
+                case 'win':
+                    osc.type = 'square'; osc.frequency.setValueAtTime(440, now); osc.frequency.setValueAtTime(554.37, now + 0.1); 
+                    osc.frequency.setValueAtTime(659.25, now + 0.2); osc.frequency.setValueAtTime(880, now + 0.3);    
+                    gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0, now + 0.6);
+                    osc.start(now); osc.stop(now + 0.6);
+                    break;
+            }
+        }
+
+        function toggleFullscreen() {
+            playSFX('click');
+            if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+                else if (document.documentElement.msRequestFullscreen) document.documentElement.msRequestFullscreen();
+                else if (document.documentElement.mozRequestFullScreen) document.documentElement.mozRequestFullScreen();
+                else if (document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.msExitFullscreen) document.msExitFullscreen();
+                else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
+        }
+
+        // --- MATRIX RAIN CYBERPUNK ---
+        function createMatrix(id) {
+            const canvas = document.getElementById(id);
+            const ctx = canvas.getContext('2d');
+            let drops = [];
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const columns = Math.floor(window.innerWidth / 16) + 1;
+                while(drops.length < columns) { drops.push(Math.random() * -100); }
+            }
+            resize();
+            window.addEventListener('resize', resize);
+            window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+
+            const MATRIX_CHARS = "01010101<>[]{}/*-+~#アイウエオカキクケコABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            function draw() {
+                ctx.fillStyle = 'rgba(5, 5, 10, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '16px Orbitron, monospace';
+                
+                let isBossPhaseActive = false;
+                try {
+                    if (typeof completedCities !== 'undefined' && typeof cities !== 'undefined') {
+                        isBossPhaseActive = (completedCities.length >= cities.length);
+                    }
+                } catch(e) {}
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)];
+                    
+                    if (isBossPhaseActive) {
+                        ctx.fillStyle = Math.random() > 0.8 ? PALETTE.pink : '#aa0055'; 
+                    } else {
+                        ctx.fillStyle = Math.random() > 0.6 ? PALETTE.cyan : PALETTE.purple; 
+                    }
+
+                    ctx.fillText(text, i * 16, drops[i] * 16);
+                    if (drops[i] * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
+                }
+            }
+            return { interval: setInterval(draw, 60), resize };
+        }
+
+        let homeMatrix = createMatrix('matrix-bg');
+        let gameMatrix;
+        let currentLang = 'it';
+        let languageChosen = false;
+
+        const LANG_TEXTS = {
+            it: {
+                chooseLang: "SELEZIONA LINGUA DI SISTEMA", start: "AVVIA COLLEGAMENTO", alertChoose: "Scegli una lingua!", confirmReset: "Sei sicuro di voler cancellare i salvataggi e ricominciare?", 
+                subtitle: "INFILTRATION PROTOCOL v2.0", cityLabel: "NODO", dataLabel: "DATI", levelLabel: "LVL", statusMap: "SCANSIONE MAPPA", statusInfiltration: "INFILTRAZIONE ATTIVA", statusHit: "SISTEMA BLOCCATO", statusComplete: "ACCESSO GARANTITO", 
+                msgHit: "FIREWALL ATTIVATO!\n\nSEI STATO BLOCCATO DALLA SICUREZZA.\n\n>>> PREMI [INVIO] O [ACT] PER RIPROVARE.", msgComplete: "DATI DECRIPTATI E SALVATI!\n\nINFILTRAZIONE COMPLETATA CON SUCCESSO.\n\n>>> PREMI [INVIO] O [ACT] PER CONTINUARE.",
+                introText: "INIZIALIZZAZIONE SISTEMA...\n\nOBIETTIVO: INFILTRARSI NEI NODI E RUBARE I DATI (GIALLO).\nATTENZIONE: EVITARE I PROGRAMMI DI SICUREZZA (MAGENTA).\nCONTROLLI: JOYSTICK VIRTUALE O TASTI W-A-S-D.\nAZIONE: PULSANTE ACT O TASTO INVIO.\n\n>>> PREMI [INVIO] O TOCCA LO SCHERMO PER ACCEDERE.", 
+                msgBossLose: "ATTENZIONE!\n\nLA NAVICELLA È STATA DISTRUTTA DAI FIREWALL GEOMETRICI.\n\n>>> PREMI [INVIO] O [ACT] PER RIAVVIARE IL CORE.", msgBossWin: "CRITICO: SISTEMA COMPROMESSO.\nIA CENTRALE DISTRUTTA.\nTUTTI I DATI SONO STATI RECUPERATI CON SUCCESSO.\n\nSEI UN VERO NEON SPECTER.\n\n[ FINE DELLA TRASMISSIONE ]",
+                privTitle: "PROTOCOLLO DI SICUREZZA: PRIVACY", privDesc: "Questo terminale richiede l'accesso alla memoria (Local Storage) per salvare i progressi e le impostazioni. Consenti l'accesso?", privAccept: "[ ACCETTA ]", privDecline: "[ RIFIUTA ]", privWarning: "ATTENZIONE: Il sistema opererà in memoria volatile (RAM). I progressi non verranno salvati alla chiusura."
+            },
+            en: {
+                chooseLang: "SELECT SYSTEM LANGUAGE", start: "INITIATE LINK", alertChoose: "Choose a language!", confirmReset: "Are you sure you want to reset all progress?", 
+                subtitle: "INFILTRATION PROTOCOL v2.0", cityLabel: "NODE", dataLabel: "DATA", levelLabel: "LVL", statusMap: "SCANNING MAP", statusInfiltration: "ACTIVE INFILTRATION", statusHit: "SYSTEM LOCKED", statusComplete: "ACCESS GRANTED", 
+                msgHit: "FIREWALL TRIGGERED!\n\nYOU HAVE BEEN LOCKED OUT BY SECURITY.\n\n>>> PRESS [ENTER] OR [ACT] TO RETRY.", msgComplete: "DATA DECRYPTED AND SAVED!\n\nINFILTRATION COMPLETED SUCCESSFULLY.\n\n>>> PRESS [ENTER] OR [ACT] TO CONTINUE.",
+                introText: "SYSTEM INITIALIZATION...\n\nOBJECTIVE: INFILTRATE NODES AND STEAL DATA (YELLOW).\nWARNING: AVOID SECURITY PROGRAMS (MAGENTA).\nCONTROLS: VIRTUAL JOYSTICK OR W-A-S-D.\nACTION: ACT BUTTON OR ENTER KEY.\n\n>>> PRESS [ENTER] OR TOUCH SCREEN TO ACCESS.", 
+                msgBossLose: "WARNING!\n\nSHIP DESTROYED BY GEOMETRIC FIREWALLS.\n\n>>> PRESS [ENTER] OR [ACT] TO REBOOT THE CORE.", msgBossWin: "CRITICAL: SYSTEM COMPROMISED.\nCENTRAL AI DESTROYED.\nALL DATA HAS BEEN SUCCESSFULLY SECURED.\n\nYOU ARE A TRUE NEON SPECTER.\n\n[ END OF TRANSMISSION ]",
+                privTitle: "SECURITY PROTOCOL: PRIVACY", privDesc: "This terminal requires access to Local Storage to save operation progress and settings. Allow memory access?", privAccept: "[ ACCEPT ]", privDecline: "[ DECLINE ]", privWarning: "WARNING: System will operate in volatile mode (RAM). Progress will not be saved upon exit."
+            },
+            fr: {
+                chooseLang: "SÉLECTIONNER LA LANGUE", start: "INITIER LE LIEN", alertChoose: "Choisis une langue !", confirmReset: "Voulez-vous vraiment réinitialiser toute la progression ?", 
+                subtitle: "PROTOCOLE D'INFILTRATION v2.0", cityLabel: "NŒUD", dataLabel: "DONNÉES", levelLabel: "LVL", statusMap: "ANALYSE CARTE", statusInfiltration: "INFILTRATION ACTIVE", statusHit: "SYSTÈME VERROUILLÉ", statusComplete: "ACCÈS AUTORISÉ", 
+                msgHit: "PARE-FEU ACTIVÉ !\n\nVOUS AVEZ ÉTÉ BLOQUÉ PAR LA SÉCURITÉ.\n\n>>> APPUYEZ SUR [ENTRÉE] OU [ACT] POUR RÉESSAYER.", msgComplete: "DONNÉES DÉCRYPTÉES ET SAUVEGARDÉES !\n\nINFILTRATION TERMINÉE AVEC SUCCÈS.\n\n>>> APPUYEZ SUR [ENTRÉE] OU [ACT] POUR CONTINUER.",
+                introText: "INITIALISATION DU SYSTÈME...\n\nOBJECTIF : INFILTRER LES NŒUDS ET VOLER LES DONNÉES (JAUNE).\nATTENTION : ÉVITER LES PROGRAMMES DE SÉCURITÉ (MAGENTA).\nCONTRÔLES : JOYSTICK VIRTUEL OU TOUCHES W-A-S-D.\nACTION : BOUTON ACT OU TOUCHE ENTRÉE.\n\n>>> APPUYEZ SUR [ENTRÉE] OU TOUCHEZ L'ÉCRAN.", 
+                msgBossLose: "ATTENTION !\n\nLE VAISSEAU A ÉTÉ DÉTRUIT PAR LES PARE-FEUX.\n\n>>> APPUYEZ SUR [ENTRÉE] OU [ACT] POUR REDÉMARRER.", msgBossWin: "CRITIQUE : SYSTÈME COMPROMIS.\nIA CENTRALE DÉTRUITE.\nTOUTES LES DONNÉES ONT ÉTÉ SÉCURISÉES.\n\nVOUS ÊTES UN VRAI NEON SPECTER.\n\n[ FIN DE TRANSMISSION ]",
+                privTitle: "PROTOCOLE DE SÉCURITÉ: CONFIDENTIALITÉ", privDesc: "Ce terminal nécessite l'accès au Local Storage pour sauvegarder la progression. Autoriser l'accès à la mémoire ?", privAccept: "[ ACCEPTER ]", privDecline: "[ REFUSER ]", privWarning: "ATTENTION: Le système fonctionnera en mode volatil (RAM). La progression ne sera pas sauvegardée."
+            },
+            es: {
+                chooseLang: "SELECCIONAR IDIOMA", start: "INICIAR ENLACE", alertChoose: "¡Elige un idioma!", confirmReset: "¿Estás seguro de que quieres restablecer todo el progreso?", 
+                subtitle: "PROTOCOLO DE INFILTRACIÓN v2.0", cityLabel: "NODO", dataLabel: "DATOS", levelLabel: "LVL", statusMap: "ESCANEO MAPA", statusInfiltration: "INFILTRACIÓN ACTIVA", statusHit: "SISTEMA BLOQUEADO", statusComplete: "ACCESO CONCEDIDO", 
+                msgHit: "¡CORTAFUEGOS ACTIVADO!\n\nHAS SIDO BLOQUEADO POR LA SEGURIDAD.\n\n>>> PRESIONA [ENTER] O [ACT] PARA REINTENTAR.", msgComplete: "¡DATOS DESCIFRADOS Y GUARDADOS!\n\nINFILTRACIÓN COMPLETADA CON ÉXITO.\n\n>>> PRESIONA [ENTER] O [ACT] PARA CONTINUAR.",
+                introText: "INICIALIZACIÓN DEL SISTEMA...\n\nOBJETIVO: INFILTRARSE EN LOS NODOS Y ROBAR DATOS (AMARILLO).\nADVERTENCIA: EVITAR PROGRAMAS DE SEGURIDAD (MAGENTA).\nCONTROLES: JOYSTICK VIRTUAL O TECLAS W-A-S-D.\nACCIÓN: BOTÓN ACT O TECLA ENTER.\n\n>>> PRESIONA [ENTER] O TOCA LA PANTALLA PARA ACCEDER.", 
+                msgBossLose: "¡ADVERTENCIA!\n\nLA NAVE FUE DESTRUIDA POR LOS CORTAFUEGOS.\n\n>>> PRESIONA [ENTER] O [ACT] PARA REINICIAR EL NÚCLEO.", msgBossWin: "CRÍTICO: SISTEMA COMPROMETIDO.\nIA CENTRAL DESTRUIDA.\nTODOS LOS DATOS HAN SIDO ASEGURADOS.\n\nERES UN VERDADERO NEON SPECTER.\n\n[ FIN DE LA TRANSMISIÓN ]",
+                privTitle: "PROTOCOLO DE SEGURIDAD: PRIVACIDAD", privDesc: "Este terminal requiere acceso al Local Storage para guardar el progreso y la configuración. ¿Permitir acceso a la memoria?", privAccept: "[ ACEPTAR ]", privDecline: "[ RECHAZAR ]", privWarning: "ADVERTENCIA: El sistema operará en modo volátil (RAM). El progreso no se guardará."
+            },
+            de: {
+                chooseLang: "SYSTEMSPRACHE WÄHLEN", start: "LINK STARTEN", alertChoose: "Wähle eine Sprache!", confirmReset: "Bist du sicher, dass du deinen gesamten Fortschritt zurücksetzen möchtest?", 
+                subtitle: "INFILTRATIONS-PROTOKOLL v2.0", cityLabel: "KNOTEN", dataLabel: "DATEN", levelLabel: "LVL", statusMap: "KARTE SCANNEN", statusInfiltration: "AKTIVE INFILTRATION", statusHit: "SYSTEM GESPERRT", statusComplete: "ZUGRIFF GEWÄHRT", 
+                msgHit: "FIREWALL AUSGELÖST!\n\nDU WURDEST VON DER SICHERHEIT GESPERRT.\n\n>>> DRÜCKE [ENTER] ODER [ACT], UM ES ERNEUT ZU VERSUCHEN.", msgComplete: "DATEN ENTSCHLÜSSELT UND GESPEICHERT!\n\nINFILTRATION ERFOLGREICH ABGESCHLOSSEN.\n\n>>> DRÜCKE [ENTER] ODER [ACT], UM FORTZUFAHREN.",
+                introText: "SYSTEMINITIALISIERUNG...\n\nZIEL: KNOTEN INFILTRIEREN UND DATEN STEHLEN (GELB).\nWARNUNG: SICHERHEITSPROGRAMME VERMEIDEN (MAGENTA).\nSTEUERUNG: VIRTUELLER JOYSTICK ODER W-A-S-D.\nAKTION: ACT-TASTE ODER ENTER.\n\n>>> DRÜCKE [ENTER] ODER BERÜHRE DEN BILDSCHIRM.", 
+                msgBossLose: "WARNUNG!\n\nSCHIFF WURDE VON FIREWALLS ZERSTÖRT.\n\n>>> DRÜCKE [ENTER] ODER [ACT] ZUM NEUSTART DES KERNS.", msgBossWin: "KRITISCH: SYSTEM KOMPROMITTIERT.\nZENTRALE KI ZERSTÖRT.\nALLE DATEN WURDEN ERFOLGREICH GESICHERT.\n\nDU BIST EIN WAHRER NEON SPECTER.\n\n[ ENDE DER ÜBERTRAGUNG ]",
+                privTitle: "SICHERHEITSPROTOKOLL: DATENSCHUTZ", privDesc: "Dieses Terminal erfordert Zugriff auf den lokalen Speicher, um Fortschritte und Einstellungen zu speichern. Speicherzugriff erlauben?", privAccept: "[ AKZEPTIEREN ]", privDecline: "[ ABLEHNEN ]", privWarning: "WARNUNG: Das System wird im flüchtigen Modus (RAM) betrieben. Der Fortschritt wird nicht gespeichert."
+            }
+        };
+
+        function applyLangTexts() {
+            const t = LANG_TEXTS[currentLang];
+            document.getElementById("lang-title").textContent = t.chooseLang;
+            document.getElementById("start-btn").textContent = t.start;
+            document.getElementById("subtitle").textContent = t.subtitle;
+        }
+
+        function selectLang(lang, element) {
+            initAudio(); 
+            playSFX('click'); 
+            currentLang = lang; 
+            languageChosen = true;
+            document.querySelectorAll('.lang-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected'); 
+            document.getElementById("start-btn").classList.add("active");
+            applyLangTexts();
+        }
+
+        function startGameClick() {
+            initAudio();
+            if (!languageChosen) {
+                alert(LANG_TEXTS[currentLang].alertChoose);
+                return;
+            }
+            playSFX('click');
+
+            if (privacyConsented === null) {
+                const t = LANG_TEXTS[currentLang];
+                document.getElementById('priv-title').textContent = t.privTitle;
+                document.getElementById('priv-desc').textContent = t.privDesc;
+                document.getElementById('btn-accept').textContent = t.privAccept;
+                document.getElementById('btn-decline').textContent = t.privDecline;
+                document.getElementById('privacy-modal').style.display = 'flex';
+            } else {
+                proceedToGame();
+            }
+        }
+
+        function acceptPrivacy() {
+            playSFX('click'); 
+            allowStorage = true;
+            privacyConsented = 'true';
+            try {
+                localStorage.setItem('neonShadows_privacy', 'true');
+                localStorage.setItem('neonShadows_sound', soundEnabled);
+                localStorage.setItem('neonShadows_completed', JSON.stringify(completedCities));
+            } catch(e) {}
+            
+            document.getElementById('privacy-modal').style.display = 'none';
+            proceedToGame();
+        }
+
+        function declinePrivacy() {
+            playSFX('click'); 
+            allowStorage = false;
+            privacyConsented = 'false';
+            
+            alert(LANG_TEXTS[currentLang].privWarning);
+            
+            document.getElementById('privacy-modal').style.display = 'none';
+            proceedToGame();
+        }
+
+        function proceedToGame() {
+            clearInterval(homeMatrix.interval); 
+            gameMatrix = createMatrix('matrix-bg-game');
+
+            document.getElementById("home").style.display = "none";
+            document.getElementById("game-screen").style.display = "flex";
+            
+            initGame();
+            startTypewriter();
+
+            if (!document.fullscreenElement) {
+                try { 
+                    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+                } catch(e){} 
+            }
+        }
+
+        const WIDTH = 1600, HEIGHT = 900;
+        let gCtx, canvas;
+        let gameState = "MAP";
+        let lastTime = 0;
+
+        const robot = { x: WIDTH / 2, y: 400, size: 26, speed: 420, trail: [] };
+        let keys = {};
+        let joyX = 0, joyY = 0;
+        let stickActive = false;
+        let actButtonPressed = false;
+        let wasMoving = false; 
+
+        let mapCursor = { x: 800, y: 150 };
+        let particles = [];
+        let shake = 0;
+
+        let walls = [], enemies = [], objectives = [];
+        let collected = 0;
+        let currentCity = null;
+
+        let bossTurret = { angle: -Math.PI/2, cooldown: 0 };
+        let bossBullets = [];
+        let bossAsteroids = [];
+        let bossAsteroidsToSpawn = 8;
+        let bossSpawnTimer = 0;
+        const ASTEROID_MAX_SPAWN = 8;
+
+        const TerminalHack = {
+            currentMsg: "INITIALIZING_SYSTEM_PROTOCOLS...",
+            typed: "",
+            queue: [],
+            timer: 0,
+            
+            add: function(msg) {
+                this.queue.push(msg);
+                if (this.typed === this.currentMsg && this.queue.length === 1) {
+                    this.timer = 999; 
+                }
+            },
+
+            update: function(dt) {
+                this.timer += dt;
+                
+                if (this.typed.length < this.currentMsg.length) {
+                    if (this.timer > 0.015) { 
+                        this.typed += this.currentMsg.charAt(this.typed.length);
+                        this.timer = 0;
+                        if(gameState !== "GAME_CLEARED") playSFX('type'); 
+                    }
+                } else {
+                    if (this.timer > 1.2) { 
+                        if (this.queue.length > 0) {
+                            this.currentMsg = this.queue.shift();
+                            this.typed = "";
+                            this.timer = 0;
+                        } else {
+                            if (Math.random() > 0.99 && gameState !== "GAME_CLEARED") {
+                                const idlePrompts = [
+                                    "SCANNING_PORTS... [NONE]",
+                                    "PING_LOCAL_NODE... [OK]",
+                                    "DECRYPTING_PACKETS... [24KB]",
+                                    "REROUTING_PROXY_CHAIN...",
+                                    "UPDATING_GHOST_PROTOCOL...",
+                                    "AWAITING_INPUT..."
+                                ];
+                                this.currentMsg = idlePrompts[Math.floor(Math.random() * idlePrompts.length)];
+                                this.typed = "";
+                                this.timer = 0;
+                            }
+                        }
+                    }
+                }
+            },
+
+            draw: function(ctx) {
+                ctx.fillStyle = "rgba(5, 5, 10, 0.85)";
+                ctx.fillRect(0, HEIGHT - 45, WIDTH, 45);
+                
+                ctx.fillStyle = PALETTE.purple;
+                ctx.fillRect(0, HEIGHT - 45, WIDTH, 2);
+
+                ctx.fillStyle = PALETTE.cyan;
+                ctx.font = "20px 'Orbitron', sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                
+                let cursor = (Math.floor(Date.now() / 250) % 2 === 0) ? "█" : "";
+                ctx.fillText("root@specter:~$ " + this.typed + cursor, 20, HEIGHT - 22);
+            }
+        };
+
+        let overlayTimer = 0;
+        let overlayText = "";
+        let overlayTyped = "";
+        let overlayColor = "";
+        let currentOverlayArt = [];
+
+        const PIRATE_SKULL_ART = [
+            "XX                                    XX",
+            "  XX                                XX  ",
+            "    XX    XXXXXXXXXXXXXXXXXXXX    XX    ",
+            "      XX XXXXXXXXXXXXXXXXXXXXXX XX      ",
+            "        XXXXXXXXXXXXXXXXXXXXXXXX        ",
+            "       XXXXXXXXXXXXXXXXXXXXXXXXXX       ",
+            "       XXXXXXX  XXXXXXXX  XXXXXXX       ",
+            "       XXXXXX    XXXXXX    XXXXXX       ",
+            "       XXXXX      XXXX      XXXXX       ",
+            "       XXXXXXXXXXXXXXXXXXXXXXXXXX       ",
+            "        XXXXXXXXXXXXXXXXXXXXXXXX        ",
+            "          XXXXXX XXXXXX XXXXXX          ",
+            "        XX  XXXX XXXXXX XXXX  XX        ",
+            "      XX     XXXX      XXXX     XX      ",
+            "    XX       XXXX      XXXX       XX    ",
+            "  XX          XXXXXXXXXXXX          XX  ",
+            "XX            XX   XX   XX            XX",
+            "              XX   XX   XX              ",
+            "              XX   XX   XX              ",
+            "              XXXXXXXXXXXX              "
+        ];
+
+        const SECURITY_ART = [
+            "   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX   ",
+            "    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    ",
+            "     XX                          XX     ",
+            "      XX                        XX      ",
+            "      XX         XXXXXX         XX      ",
+            "      XX       XXXXXXXXXX       XX      ",
+            "      XX      XXXX    XXXX      XX      ",
+            "      XX      XXXX    XXXX      XX      ",
+            "       XX     XXXXXXXXXXXX     XX       ",
+            "       XX     XXXXXXXXXXXX     XX       ",
+            "       XX     XXXX XX XXXX     XX       ",
+            "        XX    XXXX XX XXXX    XX        ",
+            "        XX    XXXXXXXXXXXX    XX        ",
+            "         XX     XXXXXXXX     XX         ",
+            "         XX                  XX         ",
+            "          XX                XX          ",
+            "           XX              XX           ",
+            "            XX            XX            ",
+            "             XX          XX             ",
+            "              XX        XX              ",
+            "               XX      XX               ",
+            "                XXXXXXXX                ",
+            "                 XXXXXX                 ",
+            "                   XX                   "
+        ];
+
+        const FINAL_SKULL_ART = [
+            "       ████████████████████████████████       ",
+            "     ████████████████████████████████████     ",
+            "   ████████████████████████████████████████   ",
+            "  ██████████████████████████████████████████  ",
+            "  ██████████████████████████████████████████  ",
+            "  ████████  ████████████████████  ████████  ",
+            "  ██████      ████████████████      ██████  ",
+            "  ████          ████████████          ████  ",
+            "  ████          ████████████          ████  ",
+            "  ██████      ████████████████      ██████  ",
+            "  ████████  ████████████████████  ████████  ",
+            "   ████████████████████████████████████████   ",
+            "     ████████████████████████████████████     ",
+            "       ██████  ████████████████  ██████       ",
+            "       ██████    ████████████    ██████       ",
+            "         ████    ████████████    ████         ",
+            "         ████    ████████████    ████         ",
+            "           ████████████████████████           ",
+            "             ████████████████████             "
+        ];
+
+        const hudCity = document.getElementById('hud-city');
+        const hudObjectives = document.getElementById('hud-objectives');
+        const hudStatus = document.getElementById('hud-status');
+        const hudGeo = document.getElementById('hud-geo');
+        const mainHud = document.getElementById('main-hud');
+
+        let canContinue = false;
+
+        const cities = [
+            { id: "neon_berlin", name: "NEON BERLIN", level: 1, x: 150, y: 180, startX: 300, startY: 420, baseLat: 52.5200, baseLon: 13.4050, walls: [[160,290,1140,25],[160,726,1140,25],[160,290,25,436],[1275,290,25,461], [450,400,200,25], [850,550,200,25]], enemySpawns: [{x:550,y:450,speed:1.4},{x:1000,y:550,speed:1.5}], objectiveSpawns: [{x:400,y:380},{x:900,y:600},{x:1100,y:400}] },
+            { id: "tokyo_grid", name: "TOKYO GRID", level: 2, x: 300, y: 120, startX: 250, startY: 350, baseLat: 35.6762, baseLon: 139.6503, walls: [[160,290,1140,25],[160,726,1140,25],[160,290,25,436],[1275,290,25,461], [350,290,25,250], [1050,500,25,250], [600,480,300,25]], enemySpawns: [{x:450,y:400,speed:1.6},{x:1100,y:600,speed:1.7},{x:750,y:350,speed:1.8}], objectiveSpawns: [{x:280,y:650},{x:1200,y:350},{x:600,y:650},{x:900,y:400}] },
+            { id: "neo_venice", name: "NEO VENICE", level: 3, x: 450, y: 240, startX: 730, startY: 500, baseLat: 45.4408, baseLon: 12.3155, walls: [[160,290,1140,25],[160,726,1140,25],[160,290,25,436],[1275,290,25,461], [400,400,200,200], [850,400,200,200]], enemySpawns: [{x:250,y:500,speed:1.9},{x:1200,y:500,speed:1.9},{x:730,y:350,speed:2.0},{x:730,y:650,speed:2.0}], objectiveSpawns: [{x:500,y:350},{x:950,y:650},{x:500,y:650},{x:950,y:350},{x:250,y:350}] },
+            { id: "ny_secure", name: "NY SECURE", level: 4, x: 600, y: 140, startX: 250, startY: 500, baseLat: 40.7128, baseLon: -74.0060, walls: [[160,290,1140,25],[160,726,1140,25],[160,290,25,436],[1275,290,25,461], [300,400,800,25], [400,580,800,25]], enemySpawns: [{x:600,y:350,speed:2.1},{x:800,y:490,speed:2.2},{x:600,y:650,speed:2.1},{x:1000,y:490,speed:2.2}], objectiveSpawns: [{x:1150,y:350},{x:350,y:490},{x:1150,y:650},{x:730,y:350},{x:730,y:650}] },
+            { id: "sp_core", name: "SAO PAULO CORE", level: 5, x: 750, y: 200, startX: 250, startY: 350, baseLat: -23.5505, baseLon: -46.6333, walls: [[160,290,1140,25],[160,726,1140,25],[160,290,25,436],[1275,290,25,461], [680,290,25,150], [680,580,25,150], [350,480,250,25], [850,480,250,25]], enemySpawns: [{x:730,y:500,speed:2.3},{x:450,y:600,speed:2.4},{x:1000,y:400,speed:2.3},{x:1100,y:650,speed:2.4}], objectiveSpawns: [{x:250,y:650},{x:1200,y:650},{x:1200,y:350},{x:500,y:550},{x:900,y:400},{x:730,y:400}] },
+            { id: "cairo_main", name: "CAIRO MAINFRAME", level: 6, x: 900, y: 130, startX: 250, startY: 650, baseLat: 30.0444, baseLon: 31.2357, walls: [[160,290,1140,25],[160,726,1140,25],[160,290,25,436],[1275,290,25,461], [350,450,25,280], [550,290,25,280], [750,450,25,280], [950,290,25,280], [1150,450,25,280]], enemySpawns: [{x:450,y:350,speed:2.5},{x:650,y:650,speed:2.6},{x:850,y:350,speed:2.5},{x:1050,y:650,speed:2.6},{x:1200,y:350,speed:2.7}], objectiveSpawns: [{x:250,y:350},{x:450,y:650},{x:650,y:350},{x:850,y:650},{x:1050,y:350},{x:1200,y:650}] },
+            { id: "sydney_up", name: "SYDNEY UPLINK", level: 7, x: 1050, y: 250, startX: 730, startY: 500, baseLat: -33.8688, baseLon: 151.2093, walls: [[160,290,1140,25],[160,726,1140,25],[160,290,25,436],[1275,290,25,461], [350,400,100,100], [600,550,100,100], [850,350,100,100], [1050,550,100,100], [500,350,25,100], [950,500,25,100]], enemySpawns: [{x:250,y:350,speed:2.8},{x:1200,y:350,speed:2.8},{x:250,y:650,speed:2.9},{x:1200,y:650,speed:2.9},{x:550,y:450,speed:2.7}], objectiveSpawns: [{x:400,y:350},{x:650,y:450},{x:900,y:650},{x:1100,y:450},{x:300,y:550},{x:800,y:350},{x:500,y:650}] },
+            { id: "seoul_neur", name: "SEOUL NEURAL", level: 8, x: 1200, y: 160, startX: 250, startY: 350, baseLat: 37.5665, baseLon: 126.9780, walls: [[160,290,1140,25],[160,726,1140,25],[160,290,25,436],[1275,290,25,461], [350,400,750,25], [350,600,750,25], [350,400,25,80], [350,520,25,80], [1075,400,25,80], [1075,520,25,80], [700,480,50,50]], enemySpawns: [{x:780,y:450,speed:3.1},{x:730,y:350,speed:3.0},{x:730,y:650,speed:3.0},{x:250,y:650,speed:3.2},{x:1200,y:500,speed:3.1}], objectiveSpawns: [{x:730,y:450},{x:730,y:550},{x:400,y:500},{x:1000,y:500},{x:250,y:500},{x:1200,y:650},{x:1200,y:350}] },
+            { id: "moscow_vault", name: "MOSCOW VAULT", level: 9, x: 1350, y: 220, startX: 730, startY: 350, baseLat: 55.7558, baseLon: 37.6173, walls: [[160,290,1140,25],[160,726,1140,25],[160,290,25,436],[1275,290,25,461], [350,380,25,250], [550,450,25,280], [900,290,25,250], [1100,380,25,250], [650,550,150,25], [650,450,150,25]], enemySpawns: [{x:250,y:650,speed:3.3},{x:450,y:350,speed:3.4},{x:800,y:650,speed:3.3},{x:1000,y:350,speed:3.4},{x:1200,y:650,speed:3.5},{x:730,y:500,speed:3.2}], objectiveSpawns: [{x:250,y:350},{x:450,y:650},{x:600,y:350},{x:850,y:650},{x:1000,y:650},{x:1200,y:350},{x:730,y:600},{x:730,y:400}] },
+            { id: "omega_sec", name: "OMEGA SECTOR", level: 10, x: 1500, y: 180, startX: 250, startY: 360, baseLat: -82.8628, baseLon: 135.0000, walls: [[160,290,1140,25],[160,726,1140,25],[160,290,25,436],[1275,290,25,461], [340,290,25,290], [520,436,25,290], [700,290,25,290], [880,436,25,290], [1060,290,25,290]], enemySpawns: [{x:430,y:500,speed:2.2},{x:610,y:500,speed:2.3},{x:790,y:500,speed:2.2},{x:970,y:500,speed:2.4},{x:1170,y:500,speed:2.3}], objectiveSpawns: [{x:250,y:650},{x:430,y:360},{x:430,y:650},{x:610,y:360},{x:610,y:650},{x:790,y:360},{x:790,y:650},{x:970,y:360},{x:970,y:650},{x:1170,y:650}] }
+        ];
+
+        let typeInterval;
+        let isTyping = false;
+        let fullIntroText = "";
+
+        function startTypewriter() {
+            gameState = "INTRO";
+            document.getElementById("game-screen").classList.add("intro-mode");
+
+            const overlay = document.getElementById("typewriter-overlay");
+            const textContainer = document.getElementById("typewriter-text");
+            overlay.style.display = "flex";
+            
+            fullIntroText = LANG_TEXTS[currentLang].introText;
+            textContainer.innerHTML = "";
+            let i = 0;
+            isTyping = true;
+
+            typeInterval = setInterval(() => {
+                if (i < fullIntroText.length) {
+                    let char = fullIntroText.charAt(i);
+                    textContainer.innerHTML += (char === '\n') ? '<br>' : char;
+                    playSFX('type'); 
+                    i++;
+                } else {
+                    finishTypewriter();
+                }
+            }, 35); 
+        }
+
+        function finishTypewriter() {
+            clearInterval(typeInterval);
+            isTyping = false;
+            document.getElementById("typewriter-text").innerHTML = fullIntroText.replace(/\n/g, '<br>');
+        }
+
+        function skipTypewriter() {
+            if (gameState !== "INTRO") return;
+            if (isTyping) {
+                finishTypewriter(); 
+            } else {
+                playSFX('click');
+                document.getElementById("typewriter-overlay").style.display = "none";
+                document.getElementById("game-screen").classList.remove("intro-mode");
+                gameState = "MAP"; 
+                TerminalHack.add("SYSTEM_READY... [OK]");
+                updateHUD();
+            }
+        }
+
+        function initGame() {
+            canvas = document.getElementById('game-canvas');
+            gCtx = canvas.getContext('2d');
+            
+            document.getElementById('game-wrapper-layer').addEventListener('click', (e) => {
+                if (gameState === "HIT" || gameState === "COMPLETE" || gameState === "BOSS_LOSE" || gameState === "GAME_CLEARED") {
+                    if (!canContinue && overlayTimer > 0.5) {
+                        overlayTimer = 9999; 
+                        playSFX('click');
+                    } else if (canContinue) {
+                        canContinue = false;
+                        if (gameState === "BOSS_LOSE") {
+                            initBossBattle();
+                        } else if (gameState === "GAME_CLEARED") {
+                            try { localStorage.removeItem('neonShadows_completed'); } catch(e){}
+                            location.reload();
+                        } else {
+                            resetToMap();
+                        }
+                    }
+                }
+            });
+
+            canvas.addEventListener('click', onCanvasClick);
+            window.addEventListener('resize', resizeGameCanvas);
+            window.addEventListener('orientationchange', () => setTimeout(resizeGameCanvas, 200));
+
+            const fsEvents = ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','MSFullscreenChange'];
+            fsEvents.forEach(ev => document.addEventListener(ev, () => setTimeout(resizeGameCanvas, 100)));
+
+            setupMobileControls();
+            resizeGameCanvas();
+            updateHUD();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function setupMobileControls() {
+            const base = document.getElementById('joystick-base');
+            const stick = document.getElementById('joystick-stick');
+            const actBtn = document.getElementById('act-btn');
+
+            let activePointerId = null;
+
+            base.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                activePointerId = e.pointerId;
+                stickActive = true;
+                base.setPointerCapture(activePointerId);
+                stick.style.transition = 'none';
+                updateJoy(e);
+            });
+
+            base.addEventListener('pointermove', (e) => {
+                if (!stickActive || e.pointerId !== activePointerId) return;
+                e.preventDefault();
+                updateJoy(e);
+            });
+
+            const endJoy = (e) => {
+                if (!stickActive || e.pointerId !== activePointerId) return;
+                stickActive = false;
+                activePointerId = null;
+                joyX = 0; joyY = 0;
+                stick.style.transform = `translate(0px, 0px)`;
+                stick.style.transition = 'transform 0.1s ease-out';
+            };
+
+            base.addEventListener('pointerup', endJoy);
+            base.addEventListener('pointercancel', endJoy);
+
+            let actPointerId = null;
+            actBtn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                actPointerId = e.pointerId;
+                actBtn.setPointerCapture(actPointerId);
+                actButtonPressed = true;
+                keys['Enter'] = true;
+                handleActionKey('Enter');
+                actBtn.style.transform = "scale(0.95)";
+                actBtn.style.background = "rgba(255, 0, 234, 0.2)";
+            });
+
+            const releaseAct = (e) => {
+                if (e.pointerId !== actPointerId) return;
+                actPointerId = null;
+                actButtonPressed = false;
+                keys['Enter'] = false;
+                actBtn.style.transform = "scale(1)";
+                actBtn.style.background = "rgba(255, 0, 234, 0.05)";
+            };
+
+            actBtn.addEventListener('pointerup', releaseAct);
+            actBtn.addEventListener('pointercancel', releaseAct);
+        }
+
+        function updateJoy(e) {
+            const rect = document.getElementById('joystick-base').getBoundingClientRect();
+            let nx = e.clientX - rect.left - rect.width/2;
+            let ny = e.clientY - rect.top - rect.height/2;
+            const mag = Math.hypot(nx, ny);
+            const limit = rect.width/2 - 20; 
+            if(mag > limit) { nx = (nx/mag)*limit; ny = (ny/mag)*limit; }
+            joyX = nx/limit; joyY = ny/limit;
+            document.getElementById('joystick-stick').style.transform = `translate(${nx}px, ${ny}px)`;
+        }
+
+        function handleActionKey(key) {
+            if (gameState === "INTRO" && (key === "Enter" || key === " ")) {
+                skipTypewriter();
+            } else if (gameState === "MAP" && (key === "Enter" || key === " ")) {
+                if (completedCities.length >= cities.length) {
+                    initBossBattle();
+                } else {
+                    for (let c of cities) {
+                        if (Math.hypot(mapCursor.x - c.x, mapCursor.y - c.y) < 30) {
+                            loadCity(c);
+                            break;
+                        }
+                    }
+                }
+            } else if (gameState === "HIT" || gameState === "COMPLETE" || gameState === "BOSS_LOSE" || gameState === "GAME_CLEARED") {
+                if (!canContinue && overlayTimer > 0.5) {
+                    overlayTimer = 9999;
+                    playSFX('click');
+                } else if (canContinue && (key === "Enter" || key === " ")) {
+                    canContinue = false;
+                    if (gameState === "BOSS_LOSE") {
+                        initBossBattle();
+                    } else if (gameState === "GAME_CLEARED") {
+                        try { localStorage.removeItem('neonShadows_completed'); } catch(e){}
+                        location.reload();
+                    } else {
+                        resetToMap();
+                    }
+                }
+            }
+        }
+
+        function resizeGameCanvas() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const isMobile = w <= 1200 || matchMedia('(pointer: coarse)').matches;
+            
+            const topSpace = isMobile ? 45 : 20; 
+            const bottomSpace = isMobile ? 40 : 0; 
+
+            const availableW = w;
+            const availableH = h - topSpace - bottomSpace;
+            
+            let scale = Math.min(availableW / WIDTH, availableH / HEIGHT);
+            scale *= 0.99; 
+
+            const newW = WIDTH * scale;
+            const newH = HEIGHT * scale;
+
+            canvas.style.width = newW + 'px';
+            canvas.style.height = newH + 'px';
+            canvas.style.left = (w - newW) / 2 + 'px';
+            canvas.style.top = topSpace + ((availableH - newH) / 2) + 'px';
+
+            if (gameMatrix && gameMatrix.resize) gameMatrix.resize();
+        }
+
+        function onCanvasClick(e) {
+            if (gameState !== "MAP") return;
+            if (completedCities.length >= cities.length) {
+                initBossBattle();
+                return;
+            }
+
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.clientX - rect.left) * (WIDTH / rect.width);
+            const my = (e.clientY - rect.top) * (HEIGHT / rect.height);
+            
+            if (my < 320) {
+                for (let c of cities) {
+                    if (Math.hypot(mx - c.x, my - c.y) < 50) {
+                        loadCity(c);
+                        break;
+                    }
+                }
+            }
+        }
+
+        function initBossBattle() {
+            playSFX('click');
+            gameState = "BOSS_BATTLE";
+            canContinue = false;
+            particles = [];
+            joyX = 0; joyY = 0;
+            actButtonPressed = false;
+            
+            bossTurret = { angle: -Math.PI/2, cooldown: 0 };
+            bossBullets = [];
+            bossAsteroids = [];
+            bossAsteroidsToSpawn = ASTEROID_MAX_SPAWN;
+            bossSpawnTimer = 0;
+
+            TerminalHack.add("WARNING: MAIN AI CORE DETECTED.");
+            TerminalHack.add("INITIALIZING COMBAT OVERRIDE...");
+            updateHUD();
+        }
+
+        function spawnAsteroid(size, x, y) {
+            let hp = size === 3 ? 3 : (size === 2 ? 2 : 1);
+            let r = size === 3 ? 65 : (size === 2 ? 35 : 18);
+            
+            let points = [];
+            let sides = 6 + Math.floor(Math.random() * 6);
+            for(let i=0; i<Math.PI*2; i+= Math.PI*2/sides) {
+                points.push({
+                    x: Math.cos(i) * r * (0.7 + Math.random()*0.5),
+                    y: Math.sin(i) * r * (0.7 + Math.random()*0.5)
+                });
+            }
+            
+            let speedMod = 1 + ((ASTEROID_MAX_SPAWN - bossAsteroidsToSpawn) * 0.03);
+            let vx = (Math.random() - 0.5) * 80 * (4 - size) * speedMod;
+            let vy = (Math.random() - 0.5) * 80 * (4 - size) * speedMod;
+            
+            bossAsteroids.push({x, y, vx, vy, size, hp, r, points, maxHp: hp, hitTimer: 0});
+        }
+
+        function updateBossBattle(dt) {
+            let rot = 0;
+            if (keys['a'] || keys['ArrowLeft']) rot = -1;
+            if (keys['d'] || keys['ArrowRight']) rot = 1;
+
+            if (rot !== 0) {
+                bossTurret.angle += rot * 6 * dt; 
+            } else if (Math.abs(joyX) > 0.05 || Math.abs(joyY) > 0.05) {
+                bossTurret.angle = Math.atan2(joyY, joyX);
+            }
+
+            bossTurret.cooldown -= dt;
+            let isShooting = keys['Enter'] || actButtonPressed || keys[' '];
+            if (isShooting && bossTurret.cooldown <= 0) {
+                bossBullets.push({
+                    x: WIDTH/2 + Math.cos(bossTurret.angle) * 25,
+                    y: HEIGHT/2 + Math.sin(bossTurret.angle) * 25,
+                    vx: Math.cos(bossTurret.angle) * 1000,
+                    vy: Math.sin(bossTurret.angle) * 1000,
+                    life: 1.5
+                });
+                bossTurret.cooldown = 0.15; 
+                playSFX('shoot');
+            }
+
+            for (let i = bossBullets.length - 1; i >= 0; i--) {
+                let b = bossBullets[i];
+                b.x += b.vx * dt;
+                b.y += b.vy * dt;
+                b.life -= dt;
+                if (b.life <= 0 || b.x < 0 || b.x > WIDTH || b.y < 0 || b.y > HEIGHT) {
+                    bossBullets.splice(i, 1);
+                }
+            }
+
+            if (bossAsteroidsToSpawn > 0) {
+                bossSpawnTimer -= dt;
+                if (bossSpawnTimer <= 0) {
+                    let edge = Math.floor(Math.random() * 4);
+                    let ax, ay;
+                    if(edge === 0) { ax = Math.random()*WIDTH; ay = -50; }
+                    else if(edge === 1) { ax = Math.random()*WIDTH; ay = HEIGHT+50; }
+                    else if(edge === 2) { ax = -50; ay = Math.random()*HEIGHT; }
+                    else { ax = WIDTH+50; ay = Math.random()*HEIGHT; }
+                    
+                    spawnAsteroid(3, ax, ay);
+                    bossAsteroidsToSpawn--;
+                    
+                    bossSpawnTimer = Math.max(1.2, 3.5 - ((ASTEROID_MAX_SPAWN - bossAsteroidsToSpawn) * 0.08));
+                }
+            }
+
+            for (let i = bossAsteroids.length - 1; i >= 0; i--) {
+                let a = bossAsteroids[i];
+                a.x += a.vx * dt;
+                a.y += a.vy * dt;
+                if(a.hitTimer > 0) a.hitTimer -= dt;
+
+                if (a.x < -80) a.x = WIDTH + 80;
+                if (a.x > WIDTH + 80) a.x = -80;
+                if (a.y < -80) a.y = HEIGHT + 80;
+                if (a.y > HEIGHT + 80) a.y = -80;
+
+                let distToShip = Math.hypot(a.x - WIDTH/2, a.y - HEIGHT/2);
+                if (distToShip < a.r + 10) { 
+                    gameState = "BOSS_LOSE";
+                    canContinue = false;
+                    shake = 20;
+                    playSFX('hit'); 
+                    spawnParticles(WIDTH/2, HEIGHT/2, PALETTE.cyan, 50);
+                    
+                    TerminalHack.add("FATAL_ERROR: HULL BREACH.");
+                    TerminalHack.add("SYSTEM OVERLOAD...");
+
+                    mainHud.style.opacity = "0"; 
+                    overlayTimer = 0;
+                    currentOverlayArt = SECURITY_ART;
+                    overlayColor = PALETTE.pink; 
+                    overlayText = LANG_TEXTS[currentLang].msgBossLose.replace(/<br>/g, '\n');
+                    keys = {}; joyX = 0; joyY = 0; actButtonPressed = false;
+                    return; 
+                }
+
+                for (let j = bossBullets.length - 1; j >= 0; j--) {
+                    let b = bossBullets[j];
+                    if (Math.hypot(a.x - b.x, a.y - b.y) < a.r + 5) {
+                        bossBullets.splice(j, 1);
+                        a.hp--;
+                        a.hitTimer = 0.1;
+                        playSFX('click');
+                        spawnParticles(b.x, b.y, "#ffffff", 5);
+
+                        if (a.hp <= 0) {
+                            playSFX('hit');
+                            spawnParticles(a.x, a.y, a.size === 3 ? PALETTE.pink : (a.size===2?PALETTE.purple:PALETTE.yellow), 20);
+                            
+                            if (a.size === 3) {
+                                spawnAsteroid(2, a.x, a.y);
+                                spawnAsteroid(2, a.x, a.y);
+                            } else if (a.size === 2) {
+                                spawnAsteroid(1, a.x, a.y);
+                                spawnAsteroid(1, a.x, a.y);
+                                spawnAsteroid(1, a.x, a.y);
+                            }
+                            bossAsteroids.splice(i, 1);
+                        }
+                        break; 
+                    }
+                }
+            }
+
+            if (bossAsteroidsToSpawn <= 0 && bossAsteroids.length === 0 && gameState === "BOSS_BATTLE") {
+                gameState = "GAME_CLEARED";
+                canContinue = false;
+                shake = 10;
+                playSFX('win');
+                
+                TerminalHack.add("ROOT_ACCESS GRANTED.");
+                TerminalHack.add("DOWNLOADING THE MATRIX...");
+
+                mainHud.style.opacity = "0"; 
+                overlayTimer = 0;
+                currentOverlayArt = FINAL_SKULL_ART;
+                overlayColor = PALETTE.cyan; 
+                overlayText = LANG_TEXTS[currentLang].msgBossWin.replace(/<br>/g, '\n');
+                keys = {}; joyX = 0; joyY = 0; actButtonPressed = false;
+            }
+        }
+
+        function drawBossBattle() {
+            gCtx.fillStyle = PALETTE.bgDeep;
+            gCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            bossAsteroids.forEach(a => {
+                gCtx.save();
+                gCtx.translate(a.x, a.y);
+                
+                if (a.hitTimer > 0) {
+                    gCtx.strokeStyle = "#fff";
+                } else {
+                    gCtx.strokeStyle = a.size === 3 ? PALETTE.pink : (a.size === 2 ? PALETTE.purple : PALETTE.yellow);
+                }
+                
+                gCtx.shadowColor = gCtx.strokeStyle;
+                gCtx.shadowBlur = 10; 
+                gCtx.lineWidth = 4;
+
+                gCtx.beginPath();
+                gCtx.moveTo(a.points[0].x, a.points[0].y);
+                for(let i=1; i<a.points.length; i++) {
+                    gCtx.lineTo(a.points[i].x, a.points[i].y);
+                }
+                gCtx.closePath();
+                gCtx.stroke();
+                
+                gCtx.shadowBlur = 0;
+                gCtx.fillStyle = gCtx.strokeStyle;
+                gCtx.font = "20px 'Orbitron', sans-serif";
+                gCtx.textAlign = "center";
+                gCtx.textBaseline = "middle";
+                gCtx.fillText(a.hp, 0, 0);
+
+                gCtx.restore();
+            });
+
+            gCtx.fillStyle = PALETTE.yellow;
+            gCtx.shadowColor = PALETTE.yellow;
+            gCtx.shadowBlur = 10;
+            bossBullets.forEach(b => {
+                gCtx.beginPath();
+                gCtx.arc(b.x, b.y, 4, 0, Math.PI*2);
+                gCtx.fill();
+            });
+            gCtx.shadowBlur = 0;
+
+            gCtx.save();
+            gCtx.translate(WIDTH/2, HEIGHT/2);
+            gCtx.rotate(bossTurret.angle);
+            gCtx.strokeStyle = PALETTE.cyan;
+            gCtx.shadowColor = PALETTE.cyan;
+            gCtx.shadowBlur = 15;
+            gCtx.lineWidth = 4;
+            gCtx.beginPath();
+            gCtx.moveTo(25, 0); 
+            gCtx.lineTo(-15, 15);
+            gCtx.lineTo(-8, 0); 
+            gCtx.lineTo(-15, -15);
+            gCtx.closePath();
+            gCtx.stroke();
+            gCtx.restore();
+
+            gCtx.shadowBlur = 0;
+            gCtx.fillStyle = PALETTE.cyan;
+            gCtx.font = "20px 'Orbitron', sans-serif";
+            gCtx.textAlign = "center";
+            gCtx.fillText(`WAVES REMAINING: [${bossAsteroidsToSpawn}] | ACTIVE FIREWALLS: [${bossAsteroids.length}]`, WIDTH/2, 40);
+        }
+
+        function isEntityColliding(cx, cy, r) {
+            for (let w of walls) {
+                const [x, y, wid, h] = w;
+                if (cx + r > x && cx - r < x + wid && cy + r > y && cy - r < y + h) return true;
+            }
+            return false;
+        }
+
+        function getSafePosition(startX, startY, r) {
+            if (!isEntityColliding(startX, startY, r)) return {x: startX, y: startY};
+            let angle = 0; let radius = 2;
+            for (let i = 0; i < 500; i++) {
+                let testX = startX + Math.cos(angle) * radius;
+                let testY = startY + Math.sin(angle) * radius;
+                if (!isEntityColliding(testX, testY, r)) return {x: testX, y: testY};
+                angle += 0.8; radius += 1.5;   
+            }
+            return {x: startX, y: startY};
+        }
+
+        function loadCity(city) {
+            playSFX('click');
+            currentCity = city;
+            gameState = "LABYRINTH";
+            canContinue = false;
+            walls = city.walls.map(w => [...w]);
+            
+            enemies = city.enemySpawns.map(e => {
+                let safePos = getSafePosition(e.x, e.y, 14);
+                return { ...e, x: safePos.x, y: safePos.y, speed: e.speed * 60 };
+            });
+
+            objectives = city.objectiveSpawns.map(o => {
+                let safePos = getSafePosition(o.x, o.y, 14);
+                return { ...o, x: safePos.x, y: safePos.y, collected: false };
+            });
+
+            collected = 0;
+            robot.x = city.startX;
+            robot.y = city.startY;
+            robot.trail = [];
+            particles = [];
+            
+            joyX = 0; joyY = 0;
+            wasMoving = false;
+            TerminalHack.add(`CONNECTING_TO_${city.name.replace(" ", "_")}...`);
+            TerminalHack.add("BYPASSING_OUTER_FIREWALL... [OK]");
+
+            updateHUD();
+        }
+
+        function resetToMap() {
+            playSFX('click');
+            gameState = "MAP";
+            currentCity = null;
+            walls = []; enemies = []; objectives = [];
+            collected = 0;
+            canContinue = false;
+            joyX = 0; joyY = 0;
+            wasMoving = false;
+            mainHud.style.opacity = "1"; 
+            
+            if (completedCities.length >= cities.length) {
+                TerminalHack.add("ALL NODES CLEARED.");
+                TerminalHack.add("MAIN AI CORE EXPOSED. AWAITING ENGAGEMENT...");
+            } else {
+                TerminalHack.add("DISCONNECTED_FROM_NODE.");
+                TerminalHack.add("AWAITING_NEW_TARGET...");
+            }
+            updateHUD();
+        }
+
+        function spawnParticles(x, y, color, count=10) {
+            for(let i=0; i<count; i++) {
+                particles.push({ x, y, vx: (Math.random()-0.5)*300, vy: (Math.random()-0.5)*300, life: 1.0, color });
+            }
+        }
+
+        function gameLoop(time) {
+            const dt = Math.min((time - lastTime) / 1000, 0.1) || 0.016; 
+            lastTime = time;
+
+            update(dt);
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update(dt) {
+            if (shake > 0) shake -= dt * 20;
+            
+            particles.forEach((p, i) => {
+                p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt * 2;
+                if(p.life <= 0) particles.splice(i, 1);
+            });
+
+            if (gameState === "MAP") {
+                handleMapMovement(dt);
+                TerminalHack.update(dt);
+                updateHUD();
+            } else if (gameState === "LABYRINTH") {
+                handleMovement(dt);
+                updateEnemies(dt);
+                checkEnemyCollision();
+                checkObjectives();
+                TerminalHack.update(dt);
+                updateGeoTracker(); 
+            } else if (gameState === "BOSS_BATTLE") {
+                updateBossBattle(dt);
+                TerminalHack.update(dt);
+            } else if (gameState === "COMPLETE" || gameState === "HIT" || gameState === "BOSS_LOSE" || gameState === "GAME_CLEARED") {
+                overlayTimer += dt;
+                
+                let linesPerSec = 5; 
+                if (gameState === "GAME_CLEARED") linesPerSec = 8; 
+                
+                let animationDuration = currentOverlayArt.length / linesPerSec;
+                let timeAfterArt = overlayTimer - animationDuration - 0.5; 
+                
+                if (timeAfterArt > 0) {
+                    let charsToShow = Math.floor(timeAfterArt * 30);
+                    
+                    if (overlayTyped.length < overlayText.length && overlayTimer !== 9999) {
+                        playSFX('type');
+                    }
+
+                    overlayTyped = overlayText.substring(0, charsToShow);
+                    if (overlayTyped.length >= overlayText.length) {
+                        if (gameState !== "GAME_CLEARED") canContinue = true;
+                    }
+                } else {
+                    overlayTyped = "";
+                }
+            }
+        }
+
+        function handleMapMovement(dt) {
+            let kx = 0, ky = 0;
+            if (keys['a'] || keys['A'] || keys['ArrowLeft']) kx -= 1;
+            if (keys['d'] || keys['D'] || keys['ArrowRight']) kx += 1;
+            if (keys['w'] || keys['W'] || keys['ArrowUp']) ky -= 1;
+            if (keys['s'] || keys['S'] || keys['ArrowDown']) ky += 1;
+
+            let moveX = kx !== 0 ? kx : joyX;
+            let moveY = ky !== 0 ? ky : joyY;
+
+            const mag = Math.hypot(moveX, moveY);
+            let isMoving = (mag > 0.1);
+
+            if (isMoving && !wasMoving) {
+                TerminalHack.add(`SCANNING_GEO_REGION...`);
+            }
+            wasMoving = isMoving;
+
+            if (isMoving) {
+                if (mag > 1) { moveX /= mag; moveY /= mag; }
+                
+                mapCursor.x += moveX * 600 * dt; 
+                mapCursor.y += moveY * 600 * dt;
+                
+                mapCursor.x = Math.max(20, Math.min(WIDTH - 20, mapCursor.x));
+                mapCursor.y = Math.max(20, Math.min(260, mapCursor.y));
+            }
+        }
+
+        function handleMovement(dt) {
+            let kx = 0, ky = 0;
+            if (keys['a'] || keys['A'] || keys['ArrowLeft']) kx -= 1;
+            if (keys['d'] || keys['D'] || keys['ArrowRight']) kx += 1;
+            if (keys['w'] || keys['W'] || keys['ArrowUp']) ky -= 1;
+            if (keys['s'] || keys['S'] || keys['ArrowDown']) ky += 1;
+
+            let moveX = kx !== 0 ? kx : joyX;
+            let moveY = ky !== 0 ? ky : joyY;
+
+            const mag = Math.hypot(moveX, moveY);
+            let isMoving = (mag > 0.1);
+
+            if (isMoving && !wasMoving) {
+                TerminalHack.add(`EXEC .\\nav_protocol.sh --override`);
+            } else if (!isMoving && wasMoving) {
+                TerminalHack.add("SYS.HALT() --awaiting_cmd");
+            }
+            wasMoving = isMoving;
+            
+            if (isMoving) {
+                const moveStep = robot.speed * dt;
+                
+                if (mag > 1) { 
+                    moveX /= mag; 
+                    moveY /= mag; 
+                }
+
+                robot.x += moveX * moveStep;
+                if (checkWallCollision()) robot.x -= moveX * moveStep;
+
+                robot.y += moveY * moveStep;
+                if (checkWallCollision()) robot.y -= moveY * moveStep;
+
+                if(Math.random() > 0.4) robot.trail.push({x: robot.x, y: robot.y, life: 1.0});
+            }
+            
+            robot.trail.forEach((t, i) => {
+                t.life -= dt * 3;
+                if(t.life <= 0) robot.trail.splice(i, 1);
+            });
+
+            robot.x = Math.max(robot.size / 2, Math.min(WIDTH - robot.size / 2, robot.x));
+            robot.y = Math.max(280 + robot.size / 2, Math.min(HEIGHT - 70 - robot.size / 2, robot.y));
+        }
+
+        function checkWallCollision() {
+            const r = 13;
+            for (let w of walls) {
+                const [x, y, wid, h] = w;
+                if (robot.x + r > x && robot.x - r < x + wid && robot.y + r > y && robot.y - r < y + h) return true;
+            }
+            return false;
+        }
+
+        function updateEnemies(dt) {
+            enemies.forEach(e => {
+                const dx = robot.x - e.x, dy = robot.y - e.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist > 0) {
+                    const r = 12;
+                    const step = e.speed * dt;
+                    let moveAngle = Math.atan2(dy, dx);
+                    let moved = false;
+
+                    const anglesToTry = [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.57, -1.57]; 
+
+                    for (let offset of anglesToTry) {
+                        let testAngle = moveAngle + offset;
+                        let vx = Math.cos(testAngle) * step;
+                        let vy = Math.sin(testAngle) * step;
+
+                        if (!isEntityColliding(e.x + vx, e.y + vy, r)) {
+                            e.x += vx;
+                            e.y += vy;
+                            moved = true;
+                            break; 
+                        }
+                    }
+
+                    if (!moved) {
+                        e.x += (Math.random() - 0.5) * 3;
+                        e.y += (Math.random() - 0.5) * 3;
+                    }
+                }
+            });
+        }
+
+        function checkEnemyCollision() {
+            for (let e of enemies) {
+                if (Math.hypot(robot.x - e.x, robot.y - e.y) < 30) {
+                    gameState = "HIT";
+                    canContinue = false;
+                    shake = 15;
+                    playSFX('hit'); 
+                    spawnParticles(robot.x, robot.y, PALETTE.pink, 25);
+                    
+                    TerminalHack.add("FATAL_ERROR: FIREWALL_BREACH_DETECTED");
+                    TerminalHack.add("DISCONNECTING_NODE...");
+
+                    mainHud.style.opacity = "0"; 
+                    overlayTimer = 0;
+                    currentOverlayArt = SECURITY_ART;
+                    overlayColor = PALETTE.pink; 
+                    overlayText = LANG_TEXTS[currentLang].msgHit.replace(/<br>/g, '\n');
+
+                    keys = {}; joyX = 0; joyY = 0; actButtonPressed = false;
+                    break;
+                }
+            }
+        }
+
+        function checkObjectives() {
+            for (let o of objectives) {
+                if (!o.collected && Math.hypot(robot.x - o.x, robot.y - o.y) < 25) {
+                    o.collected = true;
+                    collected++;
+                    playSFX('collect'); 
+                    spawnParticles(o.x, o.y, PALETTE.yellow, 15);
+                    TerminalHack.add(`DOWNLOADING_PAYLOAD_${collected}... [100%]`);
+                    updateHUD();
+                }
+            }
+            if (collected === objectives.length && objectives.length > 0 && gameState === "LABYRINTH") {
+                gameState = "COMPLETE";
+                canContinue = false;
+
+                playSFX('win'); 
+                TerminalHack.add("ALL_DATA_ACQUIRED.");
+                TerminalHack.add("INITIATING_GHOST_ESCAPE...");
+
+                mainHud.style.opacity = "0"; 
+                overlayTimer = 0;
+                currentOverlayArt = PIRATE_SKULL_ART;
+                overlayColor = PALETTE.cyan; 
+                overlayText = LANG_TEXTS[currentLang].msgComplete.replace(/<br>/g, '\n');
+
+                keys = {}; joyX = 0; joyY = 0; actButtonPressed = false;
+
+                if (currentCity && !completedCities.includes(currentCity.id)) {
+                    completedCities.push(currentCity.id);
+                    saveProgress();
+                }
+            }
+        }
+
+        function updateGeoTracker() {
+            if (!currentCity) return;
+            const latOffset = (450 - robot.y) * 0.0008; 
+            const lonOffset = (robot.x - 800) * 0.0008;
+            const lat = currentCity.baseLat + latOffset;
+            const lon = currentCity.baseLon + lonOffset;
+            const ns = lat >= 0 ? "N" : "S";
+            const ew = lon >= 0 ? "E" : "W";
+            hudGeo.textContent = `GEO: ${Math.abs(lat).toFixed(4)}° ${ns} | ${Math.abs(lon).toFixed(4)}° ${ew}`;
+        }
+
+        function draw() {
+            gCtx.save();
+            if (shake > 0) gCtx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake);
+            
+            if (gameState === "INTRO") {
+                // Non disegna nulla
+            } else if (gameState === "BOSS_BATTLE") {
+                drawBossBattle();
+                
+                particles.forEach(p => {
+                    gCtx.globalAlpha = Math.max(0, p.life);
+                    gCtx.fillStyle = p.color;
+                    gCtx.fillRect(p.x, p.y, 6, 6);
+                });
+                gCtx.globalAlpha = 1.0;
+                
+                TerminalHack.draw(gCtx);
+                
+            } else if (gameState === "COMPLETE" || gameState === "HIT" || gameState === "BOSS_LOSE" || gameState === "GAME_CLEARED") {
+                gCtx.clearRect(0, 0, WIDTH, HEIGHT);
+                gCtx.fillStyle = gameState === "GAME_CLEARED" ? "rgba(5, 5, 10, 0.70)" : "rgba(5, 5, 10, 0.85)";
+                gCtx.fillRect(0, 0, WIDTH, HEIGHT);
+                
+                particles.forEach(p => {
+                    gCtx.globalAlpha = Math.max(0, p.life);
+                    gCtx.fillStyle = p.color;
+                    gCtx.fillRect(p.x, p.y, 6, 6);
+                });
+                gCtx.globalAlpha = 1.0;
+
+                drawHackerOverlay();
+                
+            } else {
+                if (gameState === "MAP" && completedCities.length >= cities.length) {
+                    
+                    gCtx.clearRect(0, 0, WIDTH, HEIGHT);
+                    
+                    gCtx.strokeStyle = PALETTE.pink;
+                    gCtx.shadowColor = PALETTE.pink;
+                    gCtx.shadowBlur = 20;
+                    gCtx.lineWidth = 5;
+                    gCtx.beginPath();
+                    gCtx.arc(WIDTH/2, HEIGHT/2 - 40, 60 + Math.sin(Date.now()/200)*15, 0, Math.PI * 2);
+                    gCtx.stroke();
+                    
+                    gCtx.fillStyle = PALETTE.pink;
+                    gCtx.font = "30px 'Orbitron', sans-serif";
+                    gCtx.textAlign = "center";
+                    gCtx.fillText(">>> ENGAGE AI CORE <<<", WIDTH/2, HEIGHT/2 + 50);
+                    
+                    gCtx.fillStyle = "#fff";
+                    gCtx.font = "20px 'Orbitron', sans-serif";
+                    gCtx.fillText("[ " + LANG_TEXTS[currentLang].start + " / ACT ]", WIDTH/2, HEIGHT/2 + 90);
+                    
+                    gCtx.shadowBlur = 0;
+                    gCtx.textAlign = "left";
+
+                } else {
+                    gCtx.fillStyle = PALETTE.bgDeep;
+                    gCtx.fillRect(0, 0, WIDTH, HEIGHT);
+                    drawMap();
+                    if (gameState !== "MAP") drawLabyrinth();
+                }
+                
+                particles.forEach(p => {
+                    gCtx.globalAlpha = Math.max(0, p.life);
+                    gCtx.fillStyle = p.color;
+                    gCtx.fillRect(p.x, p.y, 6, 6);
+                });
+                gCtx.globalAlpha = 1.0;
+
+                TerminalHack.draw(gCtx);
+            }
+            
+            gCtx.globalAlpha = 1.0;
+            gCtx.shadowBlur = 0;
+            gCtx.restore();
+        }
+
+        function drawHackerOverlay() {
+            gCtx.fillStyle = overlayColor;
+            gCtx.shadowColor = overlayColor;
+            gCtx.shadowBlur = 10; 
+
+            const pixelSize = gameState === "GAME_CLEARED" ? 12 : 10; 
+            const artW = currentOverlayArt[0].length * pixelSize;
+            const artH = currentOverlayArt.length * pixelSize;
+            
+            const startX = WIDTH / 2 - artW / 2;
+            const startY = HEIGHT / 2 - artH / 2 - (gameState === "GAME_CLEARED" ? 100 : 80);
+
+            let linesPerSec = gameState === "GAME_CLEARED" ? 8 : 5;
+            let linesToDraw = Math.min(currentOverlayArt.length, Math.floor(overlayTimer * linesPerSec));
+
+            for (let r = 0; r < linesToDraw; r++) {
+                for (let c = 0; c < currentOverlayArt[r].length; c++) {
+                    if (currentOverlayArt[r][c] === "X" || currentOverlayArt[r][c] === "█") {
+                        gCtx.fillRect(startX + c * pixelSize, startY + r * pixelSize, pixelSize - 1, pixelSize - 1);
+                    }
+                }
+            }
+            gCtx.shadowBlur = 0;
+
+            gCtx.font = gameState === "GAME_CLEARED" ? "30px 'Orbitron', sans-serif" : "24px 'Orbitron', sans-serif";
+            gCtx.textAlign = "center";
+            gCtx.textBaseline = "top";
+            
+            let lines = overlayTyped.split('\n');
+            let textY = startY + artH + 40;
+            for(let i = 0; i < lines.length; i++) {
+                gCtx.fillText(lines[i], WIDTH / 2, textY + i * 45);
+            }
+
+            let animationDuration = currentOverlayArt.length / linesPerSec;
+            if (overlayTimer > animationDuration + 0.5 && (!canContinue || Math.floor(overlayTimer * 2) % 2 === 0)) {
+                let lastLine = lines.length > 0 ? lines[lines.length - 1] : "";
+                let textWidth = gCtx.measureText(lastLine).width;
+                gCtx.fillText("█", WIDTH / 2 + textWidth / 2 + 15, textY + Math.max(0, lines.length - 1) * 45);
+            }
+        }
+
+        function drawMap() {
+            gCtx.fillStyle = PALETTE.bgMap;
+            gCtx.fillRect(0, 0, WIDTH, 280);
+            gCtx.strokeStyle = "rgba(0, 243, 255, 0.2)";
+            gCtx.lineWidth = 2;
+            gCtx.strokeRect(20, 20, WIDTH - 40, 240);
+
+            let hoveredCity = null;
+            cities.forEach(c => {
+                const isCompleted = completedCities.includes(c.id);
+                const isHovered = gameState === "MAP" && Math.hypot(mapCursor.x - c.x, mapCursor.y - c.y) < 30;
+                
+                if(isHovered) hoveredCity = c;
+
+                gCtx.fillStyle = isCompleted ? PALETTE.purple : PALETTE.cyan;
+                gCtx.shadowBlur = isHovered ? 20 : 10; 
+                gCtx.shadowColor = gCtx.fillStyle;
+                
+                gCtx.beginPath();
+                gCtx.arc(c.x, c.y, isHovered ? 16 : 13, 0, Math.PI * 2);
+                gCtx.fill();
+                gCtx.shadowBlur = 0;
+
+                gCtx.font = "16px 'Orbitron', sans-serif";
+                gCtx.fillStyle = isCompleted ? PALETTE.purple : PALETTE.cyan;
+                let labelX = c.x + 28;
+                if (c.x > 800) labelX = c.x - 165;
+                gCtx.fillText(c.name, labelX, c.y + 6);
+            });
+
+            if (gameState === "MAP") {
+                gCtx.strokeStyle = hoveredCity ? "#fff" : "rgba(0, 243, 255, 0.7)";
+                gCtx.shadowColor = hoveredCity ? "#fff" : PALETTE.cyan;
+                gCtx.shadowBlur = 10;
+                gCtx.lineWidth = 2;
+                gCtx.beginPath();
+                gCtx.arc(mapCursor.x, mapCursor.y, 22, 0, Math.PI * 2);
+                gCtx.stroke();
+                
+                gCtx.beginPath();
+                gCtx.moveTo(mapCursor.x - 30, mapCursor.y); gCtx.lineTo(mapCursor.x - 12, mapCursor.y);
+                gCtx.moveTo(mapCursor.x + 12, mapCursor.y); gCtx.lineTo(mapCursor.x + 30, mapCursor.y);
+                gCtx.moveTo(mapCursor.x, mapCursor.y - 30); gCtx.lineTo(mapCursor.x, mapCursor.y - 12);
+                gCtx.moveTo(mapCursor.x, mapCursor.y + 12); gCtx.lineTo(mapCursor.x, mapCursor.y + 30);
+                gCtx.stroke();
+                gCtx.shadowBlur = 0;
+            }
+        }
+
+        function drawLabyrinth() {
+            gCtx.fillStyle = PALETTE.bgGrid;
+            gCtx.fillRect(0, 280, WIDTH, HEIGHT - 280);
+
+            robot.trail.forEach(t => {
+                gCtx.globalAlpha = Math.max(0, t.life * 0.5);
+                gCtx.fillStyle = PALETTE.cyan;
+                gCtx.fillRect(t.x - 8, t.y - 8, 16, 16);
+            });
+            gCtx.globalAlpha = 1.0;
+
+            gCtx.fillStyle = PALETTE.purple;
+            gCtx.shadowColor = PALETTE.purple;
+            gCtx.shadowBlur = 15;
+            walls.forEach(w => gCtx.fillRect(...w));
+            gCtx.shadowBlur = 0;
+
+            gCtx.fillStyle = PALETTE.yellow;
+            gCtx.shadowColor = PALETTE.yellow;
+            gCtx.shadowBlur = 15;
+            objectives.forEach(o => {
+                if (!o.collected) {
+                    gCtx.beginPath(); gCtx.arc(o.x, o.y, 11, 0, Math.PI * 2); gCtx.fill();
+                    gCtx.globalAlpha = 0.4;
+                    gCtx.beginPath(); gCtx.arc(o.x, o.y, 16, 0, Math.PI * 2); gCtx.fill();
+                    gCtx.globalAlpha = 1.0;
+                }
+            });
+            gCtx.shadowBlur = 0;
+
+            gCtx.fillStyle = PALETTE.pink;
+            gCtx.shadowColor = PALETTE.pink;
+            gCtx.shadowBlur = 15;
+            enemies.forEach(e => {
+                gCtx.fillRect(e.x - 13, e.y - 13, 26, 26);
+                gCtx.globalAlpha = 0.3;
+                gCtx.fillRect(e.x - 18, e.y - 18, 36, 36);
+                gCtx.globalAlpha = 1.0;
+            });
+            gCtx.shadowBlur = 0;
+
+            gCtx.fillStyle = PALETTE.cyan;
+            gCtx.shadowColor = PALETTE.cyan;
+            gCtx.shadowBlur = 20;
+            gCtx.fillRect(robot.x - 13, robot.y - 13, 26, 26);
+            gCtx.globalAlpha = 0.3;
+            gCtx.fillRect(robot.x - 18, robot.y - 18, 36, 36);
+            gCtx.globalAlpha = 1.0;
+            gCtx.shadowBlur = 0;
+        }
+
+        function updateHUD() {
+            const t = LANG_TEXTS[currentLang];
+            if (currentCity) {
+                hudCity.textContent = `${t.cityLabel}: ${currentCity.name} | ${t.levelLabel}: ${currentCity.level}`;
+                hudObjectives.textContent = `${t.dataLabel}: ${collected}/${objectives.length}`;
+                if (gameState === "LABYRINTH") hudStatus.textContent = `STATUS: ${t.statusInfiltration}`;
+                else if (gameState === "HIT") hudStatus.textContent = `STATUS: ${t.statusHit}`;
+                else if (gameState === "COMPLETE") hudStatus.textContent = `STATUS: ${t.statusComplete}`;
+                else if (gameState === "INTRO") hudStatus.textContent = `STATUS: BOOTING...`;
+                
+                hudStatus.style.color = (gameState === "HIT") ? PALETTE.pink : PALETTE.cyan;
+                
+                updateGeoTracker(); 
+            } else if (gameState === "BOSS_BATTLE" || gameState === "BOSS_LOSE" || gameState === "GAME_CLEARED") {
+                hudCity.textContent = `TARGET: MAIN_AI_CORE | DANGER: MAXIMUM`;
+                hudObjectives.textContent = `WAVES: ${bossAsteroidsToSpawn} | ACTIVES: ${bossAsteroids.length}`;
+                hudStatus.textContent = gameState === "GAME_CLEARED" ? `STATUS: DESTROYED` : `STATUS: ENGAGED`;
+                hudStatus.style.color = gameState === "GAME_CLEARED" ? PALETTE.cyan : PALETTE.pink;
+                hudGeo.textContent = `GEO: UNKNOWN [VIRTUAL_SPACE]`;
+            } else {
+                let hovered = null;
+                if (gameState === "MAP") {
+                    for (let c of cities) {
+                        if (Math.hypot(mapCursor.x - c.x, mapCursor.y - c.y) < 30) {
+                            hovered = c; break;
+                        }
+                    }
+                }
+                if (completedCities.length >= cities.length) {
+                    hudCity.textContent = `MISSION: DESTROY AI CORE`;
+                    hudStatus.textContent = `STATUS: CRITICAL`;
+                    hudStatus.style.color = PALETTE.pink;
+                } else {
+                    hudCity.textContent = hovered ? `${t.cityLabel}: ${hovered.name}` : `${t.cityLabel}: -`;
+                    hudStatus.textContent = `STATUS: ${t.statusMap}`;
+                    hudStatus.style.color = PALETTE.cyan;
+                }
+                hudObjectives.textContent = `${t.dataLabel}: 0/0`;
+                hudGeo.textContent = `GEO: OFFLINE`;
+            }
+        }
+
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            handleActionKey(e.key);
+        });
+
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        window.onload = () => {
+            applyLangTexts();
+            document.getElementById('sound-btn').textContent = soundEnabled ? "[🔊 ON]" : "[🔇 OFF]";
+        };
+    </script>
+</body>
+</html>
