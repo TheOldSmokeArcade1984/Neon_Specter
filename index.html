@@ -635,6 +635,11 @@
         let actButtonPressed = false;
         let wasMoving = false; 
 
+        // --- NUOVE VARIABILI PER IL GAMEPAD ---
+        let gpX = 0, gpY = 0;
+        let gpActPressed = false;
+        let gpActWasPressed = false;
+
         let mapCursor = { x: 800, y: 150 };
         let particles = [];
         let shake = 0;
@@ -1092,6 +1097,8 @@
 
             if (rot !== 0) {
                 bossTurret.angle += rot * 6 * dt; 
+            } else if (Math.abs(gpX) > 0.05 || Math.abs(gpY) > 0.05) { // AGGIORNATO JOYPAD
+                bossTurret.angle = Math.atan2(gpY, gpX);
             } else if (Math.abs(joyX) > 0.05 || Math.abs(joyY) > 0.05) {
                 bossTurret.angle = Math.atan2(joyY, joyX);
             }
@@ -1164,7 +1171,7 @@
                     currentOverlayArt = SECURITY_ART;
                     overlayColor = PALETTE.pink; 
                     overlayText = LANG_TEXTS[currentLang].msgBossLose.replace(/<br>/g, '\n');
-                    keys = {}; joyX = 0; joyY = 0; actButtonPressed = false;
+                    keys = {}; joyX = 0; joyY = 0; actButtonPressed = false; gpX = 0; gpY = 0;
                     return; 
                 }
 
@@ -1210,7 +1217,7 @@
                 currentOverlayArt = FINAL_SKULL_ART;
                 overlayColor = PALETTE.cyan; 
                 overlayText = LANG_TEXTS[currentLang].msgBossWin.replace(/<br>/g, '\n');
-                keys = {}; joyX = 0; joyY = 0; actButtonPressed = false;
+                keys = {}; joyX = 0; joyY = 0; actButtonPressed = false; gpX = 0; gpY = 0;
             }
         }
 
@@ -1326,7 +1333,7 @@
             robot.trail = [];
             particles = [];
             
-            joyX = 0; joyY = 0;
+            joyX = 0; joyY = 0; gpX = 0; gpY = 0;
             wasMoving = false;
             TerminalHack.add(`CONNECTING_TO_${city.name.replace(" ", "_")}...`);
             TerminalHack.add("BYPASSING_OUTER_FIREWALL... [OK]");
@@ -1341,7 +1348,7 @@
             walls = []; enemies = []; objectives = [];
             collected = 0;
             canContinue = false;
-            joyX = 0; joyY = 0;
+            joyX = 0; joyY = 0; gpX = 0; gpY = 0;
             wasMoving = false;
             mainHud.style.opacity = "1"; 
             
@@ -1370,7 +1377,36 @@
             requestAnimationFrame(gameLoop);
         }
 
+        // --- FUNZIONE GAMEPAD AGGIUNTA ---
+        function updateGamepad() {
+            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            const gp = gamepads[0]; 
+            const touchControls = document.getElementById('touch-controls');
+
+            if (gp && gp.connected) {
+                if (touchControls) touchControls.style.display = 'none';
+
+                gpX = Math.abs(gp.axes[0]) > 0.2 ? gp.axes[0] : 0;
+                gpY = Math.abs(gp.axes[1]) > 0.2 ? gp.axes[1] : 0;
+
+                gpActPressed = gp.buttons[0].pressed || (gp.buttons.length > 7 && gp.buttons[7].pressed);
+
+                if (gpActPressed && !gpActWasPressed) {
+                    handleActionKey('Enter'); 
+                    actButtonPressed = true;  
+                } else if (!gpActPressed && gpActWasPressed) {
+                    actButtonPressed = false; 
+                }
+                gpActWasPressed = gpActPressed;
+            } else {
+                if (touchControls) touchControls.style.display = '';
+                gpX = 0; gpY = 0;
+            }
+        }
+
         function update(dt) {
+            updateGamepad(); // LOGICA GAMEPAD INTEGRATA
+
             if (shake > 0) shake -= dt * 20;
             
             particles.forEach((p, i) => {
@@ -1425,8 +1461,8 @@
             if (keys['w'] || keys['W'] || keys['ArrowUp']) ky -= 1;
             if (keys['s'] || keys['S'] || keys['ArrowDown']) ky += 1;
 
-            let moveX = kx !== 0 ? kx : joyX;
-            let moveY = ky !== 0 ? ky : joyY;
+            let moveX = kx !== 0 ? kx : (gpX !== 0 ? gpX : joyX);
+            let moveY = ky !== 0 ? ky : (gpY !== 0 ? gpY : joyY);
 
             const mag = Math.hypot(moveX, moveY);
             let isMoving = (mag > 0.1);
@@ -1454,8 +1490,8 @@
             if (keys['w'] || keys['W'] || keys['ArrowUp']) ky -= 1;
             if (keys['s'] || keys['S'] || keys['ArrowDown']) ky += 1;
 
-            let moveX = kx !== 0 ? kx : joyX;
-            let moveY = ky !== 0 ? ky : joyY;
+            let moveX = kx !== 0 ? kx : (gpX !== 0 ? gpX : joyX);
+            let moveY = ky !== 0 ? ky : (gpY !== 0 ? gpY : joyY);
 
             const mag = Math.hypot(moveX, moveY);
             let isMoving = (mag > 0.1);
@@ -1554,7 +1590,7 @@
                     overlayColor = PALETTE.pink; 
                     overlayText = LANG_TEXTS[currentLang].msgHit.replace(/<br>/g, '\n');
 
-                    keys = {}; joyX = 0; joyY = 0; actButtonPressed = false;
+                    keys = {}; joyX = 0; joyY = 0; actButtonPressed = false; gpX = 0; gpY = 0;
                     break;
                 }
             }
@@ -1585,7 +1621,7 @@
                 overlayColor = PALETTE.cyan; 
                 overlayText = LANG_TEXTS[currentLang].msgComplete.replace(/<br>/g, '\n');
 
-                keys = {}; joyX = 0; joyY = 0; actButtonPressed = false;
+                keys = {}; joyX = 0; joyY = 0; actButtonPressed = false; gpX = 0; gpY = 0;
 
                 if (currentCity && !completedCities.includes(currentCity.id)) {
                     completedCities.push(currentCity.id);
