@@ -15,7 +15,7 @@ Il tuo obiettivo è superare i sistemi di sicurezza della rete. Ecco le regole d
 
 * **Estetica Modern Neon:** Interfaccia utente con effetti "glassmorphism", ombre luminose e palette cyberpunk.
 * **Privacy by Design:** Il gioco salva i tuoi progressi esclusivamente nel Local Storage del tuo browser. Nessun dato viene inviato a server esterni[cite: 5].
-* **Responsive:** Giocabile sia da PC desktop che da dispositivi mobile (in modalità orizzontale)[cite: 5].
+* **Responsive:** Giocabile sia da PC desktop che da dispositivi mobile (in modalità orizzontale) Smart TV e Con Controller[cite: 5].
 * **Multilingua:** Supporta Italiano, Inglese, Francese, Spagnolo e Tedesco[cite: 5].
 
 ## 📜 Licenza
