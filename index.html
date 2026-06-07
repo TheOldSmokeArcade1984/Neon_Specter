@@ -26,8 +26,27 @@
             --font-body: 'Inter', sans-serif;
         }
 
-        * { box-sizing: border-box; touch-action: none; }
+        /* Ottimizzazioni cruciali per Smart TV (Blocco Spatial Navigation) */
+        * { 
+            box-sizing: border-box; 
+            touch-action: none; 
+            spatial-navigation-action: none;
+            spatial-navigation-contain: contain;
+        }
+        
         body { margin:0; padding:0; background: var(--bg-deep); color: var(--neon-cyan); font-family: var(--font-display); overflow:hidden; height:100vh; width: 100vw; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Animazione Cornice Neon Cangiante Multicolore */
+        @keyframes neonChroma {
+            0%   { border-color: #ff00ea; box-shadow: 0 0 25px rgba(255, 0, 234, 0.7), inset 0 0 15px rgba(255, 0, 234, 0.4); }
+            20%  { border-color: #00f3ff; box-shadow: 0 0 25px rgba(0, 243, 255, 0.7), inset 0 0 15px rgba(0, 243, 255, 0.4); }
+            40%  { border-color: #fcee0a; box-shadow: 0 0 25px rgba(252, 238, 10, 0.7), inset 0 0 15px rgba(252, 238, 10, 0.4); }
+            60%  { border-color: #00ffaa; box-shadow: 0 0 25px rgba(0, 255, 170, 0.7), inset 0 0 15px rgba(0, 255, 170, 0.4); }
+            80%  { border-color: #b026ff; box-shadow: 0 0 25px rgba(176, 38, 255, 0.7), inset 0 0 15px rgba(176, 38, 255, 0.4); }
+            100% { border-color: #ff00ea; box-shadow: 0 0 25px rgba(255, 0, 234, 0.7), inset 0 0 15px rgba(255, 0, 234, 0.4); }
+        }
 
         #home, #game-screen { position:absolute; width:100%; height:100%; }
 
@@ -65,36 +84,41 @@
             letter-spacing: 2px;
         }
 
-        #lang-title { font-size:clamp(14px, 2vw, 18px); margin-bottom:20px; letter-spacing:3px; color: var(--text-main); font-family: var(--font-body); }
-        .lang-grid { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:30px; max-width: 600px;}
+        /* Layout UI Unificato per Home (Dashboard) */
+        #home-ui-container { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; max-width: 1300px; }
+        
+        .ui-panel { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            background: rgba(10, 10, 20, 0.85); 
+            backdrop-filter: blur(12px);
+            padding: 30px 40px;
+            border-radius: 20px;
+            border: 2px solid #ff00ea;
+            animation: neonChroma 6s linear infinite;
+        }
+
+        .ui-title { font-size:clamp(14px, 2vw, 18px); margin-top: 0; margin-bottom:25px; letter-spacing:3px; color: var(--text-main); font-family: var(--font-body); text-transform: uppercase; text-shadow: 0 0 5px var(--text-main);}
+        
+        .lang-grid { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; max-width: 600px;}
         .lang-item { 
             cursor:pointer; text-align:center; padding:12px 20px; 
             border: 1px solid rgba(255,255,255,0.1); 
-            background: var(--bg-panel);
-            backdrop-filter: blur(10px);
+            background: var(--bg-deep);
             border-radius: 8px;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
             width: 100px; font-size: 16px; color: var(--text-main);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .lang-item:hover, .lang-item.selected { 
             border-color: var(--neon-cyan); 
             color: var(--neon-cyan);
             transform: translateY(-5px); 
             box-shadow: 0 10px 20px rgba(0, 243, 255, 0.2); 
+            background: rgba(0, 243, 255, 0.05);
         }
         .flag { font-size:24px; display:block; margin-bottom:8px; }
-
-        #start-btn { 
-            margin-top:20px; padding:15px 50px; 
-            border: 2px solid var(--neon-cyan); 
-            border-radius: 50px;
-            opacity:0.4; pointer-events:none; cursor:default; 
-            font-size:22px; font-family: var(--font-display); font-weight: 700;
-            transition:all 0.3s; background:transparent; color: var(--neon-cyan); 
-            letter-spacing: 2px;
-        }
-        #start-btn.active { opacity:1; pointer-events:auto; cursor:pointer; box-shadow:0 0 25px rgba(0, 243, 255, 0.4); }
-        #start-btn.active:hover { background: var(--neon-cyan); color: #000; box-shadow:0 0 40px rgba(0, 243, 255, 0.6); transform: scale(1.05); }
 
         /* MODALI - Glassmorphism */
         .modal-overlay {
@@ -108,8 +132,9 @@
             padding: 40px; border-radius: 16px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.05); 
             max-width: 650px; pointer-events: auto;
+            animation: neonChroma 6s linear infinite; /* Aggiunto effetto chroma anche al modale */
         }
-        .modal-box h2 { font-size: clamp(20px, 3vw, 28px); margin-top: 0; color: var(--neon-cyan); letter-spacing: 2px; }
+        .modal-box h2 { font-size: clamp(20px, 3vw, 28px); margin-top: 0; color: var(--neon-cyan); letter-spacing: 2px; transition: color 0.3s;}
         .modal-box p { font-family: var(--font-body); font-size: clamp(14px, 2vw, 16px); line-height: 1.6; color: var(--text-main); margin-bottom: 30px; opacity: 0.9; }
         .modal-btns { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
         .modal-btn { 
@@ -120,18 +145,6 @@
         .modal-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.5); transform:translateY(-3px); }
         .modal-btn.decline { border-color: var(--neon-pink); color: var(--neon-pink); background: rgba(255, 0, 234, 0.1); }
         .modal-btn.decline:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 20px rgba(255, 0, 234, 0.5); }
-
-        /* HARDWARE SELECTION SPECIFICS */
-        .hw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        @media (max-width: 500px) { .hw-grid { grid-template-columns: 1fr; } }
-        .hw-item {
-            padding: 15px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
-            background: rgba(10, 10, 20, 0.5); color: var(--text-main); cursor: pointer;
-            transition: 0.3s; font-family: var(--font-display); font-size: 16px; letter-spacing: 1px;
-        }
-        .hw-item:hover { border-color: var(--neon-purple); box-shadow: 0 0 15px rgba(176, 38, 255, 0.3); transform: scale(1.02); }
-        .hw-icon { font-size: 24px; display: block; margin-bottom: 5px; }
-        #hw-instructions { font-family: var(--font-body); color: var(--neon-yellow); min-height: 40px; font-size: 14px; opacity: 0.8; }
 
         #game-screen { display:none; justify-content:center; align-items:center; background: radial-gradient(circle at center, #0a0a1a 0%, #020205 100%); }
 
@@ -145,24 +158,15 @@
             display:flex; gap:15px; z-index:15; 
             background: rgba(10, 10, 25, 0.5); backdrop-filter: blur(10px);
             padding:10px 25px; border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; 
-            flex-wrap: wrap; justify-content: center; 
+            flex-wrap: wrap; justify-content: center; align-items: center;
             width: max-content; max-width: 90%; 
             pointer-events: auto; transition: all 0.5s;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         
-        #fullscreen-btn, #sound-btn, #reset-btn { 
-            position: absolute; z-index: 100; 
-            color: var(--text-main); border: 1px solid rgba(255,255,255,0.2); 
-            background: rgba(10,10,25,0.6); backdrop-filter: blur(5px);
-            padding: 10px 15px; font-size: 16px; cursor: pointer; border-radius: 8px; 
-            font-family: var(--font-display); transition: 0.3s; pointer-events: auto;
-        }
-        #fullscreen-btn { top: 15px; right: 20px; }
-        #sound-btn { top: 15px; left: 20px; width: 110px; }
-        #reset-btn { top: 65px; left: 20px; width: 110px; } 
-        
-        #fullscreen-btn:hover, #sound-btn:hover, #reset-btn:hover { background: var(--text-main); color: #000; box-shadow: 0 0 15px rgba(255,255,255,0.5);}
+        .hud-icons { display: flex; gap: 15px; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 15px; }
+        .hud-icons span { cursor: pointer; transition: 0.2s; }
+        .hud-icons span:hover { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); transform: scale(1.1); }
 
         /* STILE PROMPT HACKER */
         #typewriter-overlay {
@@ -229,15 +233,12 @@
         /* Ottimizzazione TV */
         body.tv-mode .hud { font-size: 22px; padding: 15px 40px; top: 30px; border-width: 2px;}
         body.tv-mode #typewriter-text { font-size: clamp(24px, 4vw, 36px); line-height: 2; }
-        body.tv-mode #sound-btn, body.tv-mode #reset-btn, body.tv-mode #fullscreen-btn { display: none; } /* Inutile su TV */
+        body.tv-mode .hud-icons { display: none; } /* TV remote is usually enough */
 
         /* MEDIA QUERIES PER TOUCH (se non forzato) */
         @media (max-width: 1200px), (pointer: coarse) {
             #touch-controls { display: block; }
             .hud { font-size: 10px; padding: 8px 15px; gap: 10px; top: 10px;}
-            #fullscreen-btn { top: 10px; right: 10px; font-size: 14px; padding: 8px 12px;}
-            #sound-btn { top: 10px; left: 10px; font-size: 14px; padding: 8px 12px; width: 90px;}
-            #reset-btn { top: 55px; left: 10px; font-size: 14px; padding: 8px 12px; width: 90px;}
         }
 
         @media screen and (max-height: 500px) {
@@ -261,31 +262,6 @@
         <div class="landscape-sub">Please rotate to landscape mode to initialize.</div>
     </div>
 
-    <!-- MODALE HARDWARE -->
-    <div id="hardware-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h2 id="hw-title">HARDWARE INTERFACE</h2>
-            <p id="hw-desc">Select input device to optimize display.</p>
-            
-            <div class="hw-grid">
-                <div class="hw-item" onpointerenter="showHWInstructions('pc')" onclick="selectHardware('pc')">
-                    <span class="hw-icon">⌨️</span><span id="hw-btn-pc">PC</span>
-                </div>
-                <div class="hw-item" onpointerenter="showHWInstructions('gamepad')" onclick="selectHardware('gamepad')">
-                    <span class="hw-icon">🎮</span><span id="hw-btn-gp">GAMEPAD</span>
-                </div>
-                <div class="hw-item" onpointerenter="showHWInstructions('touch')" onclick="selectHardware('touch')">
-                    <span class="hw-icon">📱</span><span id="hw-btn-touch">TOUCH</span>
-                </div>
-                <div class="hw-item" onpointerenter="showHWInstructions('tv')" onclick="selectHardware('tv')">
-                    <span class="hw-icon">📺</span><span id="hw-btn-tv">TV</span>
-                </div>
-            </div>
-            <div id="hw-instructions">...</div>
-        </div>
-    </div>
-
-    <!-- MODALE PRIVACY -->
     <div id="privacy-modal" class="modal-overlay">
         <div class="modal-box">
             <h2 id="priv-title">SECURITY PROTOCOL: PRIVACY</h2>
@@ -297,24 +273,66 @@
         </div>
     </div>
 
-    <button id="sound-btn" onclick="toggleSound()">[🔊 ON]</button>
-    <button id="reset-btn" onclick="confirmReset()">[↺ RESET]</button>
-    <button id="fullscreen-btn" onclick="toggleFullscreen()">[⛶]</button>
-
     <div id="home">
         <canvas id="matrix-bg" class="matrix-bg"></canvas>
         <div class="content">
             <h1>NEON SPECTER</h1>
             <div id="subtitle" class="subtitle">INFILTRATION PROTOCOL v2.0</div>
-            <p id="lang-title">SELECT SYSTEM LANGUAGE</p>
-            <div class="lang-grid">
-                <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('it', this)"><span class="flag">🇮🇹</span>ITA</div>
-                <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('en', this)"><span class="flag">🇬🇧</span>ENG</div>
-                <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('fr', this)"><span class="flag">🇫🇷</span>FRA</div>
-                <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('es', this)"><span class="flag">🇪🇸</span>ESP</div>
-                <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('de', this)"><span class="flag">🇩🇪</span>DEU</div>
+            
+            <div id="home-ui-container">
+                <div class="ui-panel">
+                    <p id="lang-title" class="ui-title">SELECT SYSTEM LANGUAGE</p>
+                    <div class="lang-grid" id="lang-grid-home">
+                        <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('it', this)">
+                            <span class="flag">🇮🇹</span>ITA
+                        </div>
+                        <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('en', this)">
+                            <span class="flag">🇬🇧</span>ENG
+                        </div>
+                        <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('fr', this)">
+                            <span class="flag">🇫🇷</span>FRA
+                        </div>
+                        <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('es', this)">
+                            <span class="flag">🇪🇸</span>ESP
+                        </div>
+                        <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('de', this)">
+                            <span class="flag">🇩🇪</span>DEU
+                        </div>
+                        <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('ja', this)">
+                            <span class="flag">🇯🇵</span>JPN
+                        </div>
+                        <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectLang('zh', this)">
+                            <span class="flag">🇨🇳</span>CHN
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-panel">
+                    <p id="sys-title" class="ui-title">SYSTEM CONTROLS</p>
+                    <div class="lang-grid">
+                        <div class="lang-item" onpointerenter="playSFX('hover')" onclick="toggleSound()">
+                            <span class="flag" id="sound-icon-home">🔊</span><span id="sound-text-home">ON</span>
+                        </div>
+                        <div class="lang-item" onpointerenter="playSFX('hover')" onclick="toggleFullscreen()">
+                            <span class="flag">⛶</span>FULL
+                        </div>
+                        <div class="lang-item" onpointerenter="playSFX('hover')" onclick="confirmReset()">
+                            <span class="flag">↺</span>RST
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button id="start-btn" onpointerenter="playSFX('hover')" onclick="startGameClick()">INITIATE LINK</button>
+
+            <div id="hw-selection" class="ui-panel" style="display: none; margin-top: 25px;">
+                <p id="hw-title-home" class="ui-title">SELEZIONA HARDWARE</p>
+                <div class="lang-grid" id="hw-grid-home">
+                    <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectHardware('touch')"><span class="flag">📱</span><span id="hw-btn-touch">TOUCH</span></div>
+                    <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectHardware('pc')"><span class="flag">⌨️</span><span id="hw-btn-pc">PC</span></div>
+                    <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectHardware('tv')"><span class="flag">📺</span><span id="hw-btn-tv">TV</span></div>
+                    <div class="lang-item" onpointerenter="playSFX('hover')" onclick="selectHardware('gamepad')"><span class="flag">🎮</span><span id="hw-btn-gp">PAD</span></div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -328,6 +346,11 @@
                 <div id="hud-objectives">DATA: 0/0</div>
                 <div id="hud-status" style="color: var(--neon-pink);">STATUS: STANDBY</div>
                 <div id="hud-geo" style="color: var(--neon-cyan);">GEO: 00.00° N | 00.00° E</div>
+                <div class="hud-icons">
+                    <span id="hud-sound-icon" onclick="toggleSound()" title="Sound Toggle">🔊</span>
+                    <span onclick="toggleFullscreen()" title="Fullscreen">⛶</span>
+                    <span onclick="confirmReset()" title="Reset Game">↺</span>
+                </div>
             </div>
             
             <div id="typewriter-overlay" onclick="skipTypewriter()">
@@ -356,7 +379,7 @@
         let allowStorage = false;
         let soundEnabled = true;
         let completedCities = [];
-        let selectedHardware = null; // Memorizza la scelta dell'utente
+        let selectedHardware = null;
 
         try {
             privacyConsented = localStorage.getItem('neonShadows_privacy');
@@ -381,17 +404,43 @@
         function toggleSound() {
             soundEnabled = !soundEnabled;
             if (allowStorage) { try { localStorage.setItem('neonShadows_sound', soundEnabled); } catch(e) {} }
-            const btn = document.getElementById('sound-btn');
-            if (soundEnabled) { btn.textContent = "[🔊 ON]"; initAudio(); playSFX('click'); } 
-            else { btn.textContent = "[🔇 OFF]"; }
+            
+            const iconStr = soundEnabled ? "🔊" : "🔇";
+            const textStr = soundEnabled ? "ON" : "OFF";
+            
+            if(document.getElementById('sound-icon-home')) document.getElementById('sound-icon-home').textContent = iconStr;
+            if(document.getElementById('sound-text-home')) document.getElementById('sound-text-home').textContent = textStr;
+            if(document.getElementById('hud-sound-icon')) document.getElementById('hud-sound-icon').textContent = iconStr;
+
+            if (soundEnabled) { initAudio(); playSFX('click'); } 
         }
 
+        // --- SISTEMA DI MODALI CUSTOM (Senza Alert/Confirm nativi) ---
         function confirmReset() {
             playSFX('click');
-            if (confirm(LANG_TEXTS[currentLang]?.confirmReset)) {
-                try { localStorage.removeItem('neonShadows_completed'); localStorage.removeItem('neonShadows_sound'); localStorage.removeItem('neonShadows_privacy'); } catch(e) {}
-                location.reload(); 
-            }
+            const t = LANG_TEXTS[currentLang];
+            
+            // Applica contenuti per il Reset
+            document.getElementById('priv-title').textContent = "SYSTEM RESET";
+            document.getElementById('priv-title').style.color = "var(--neon-pink)";
+            document.getElementById('priv-desc').innerHTML = t.confirmReset;
+            
+            const btns = document.querySelector('.modal-btns');
+            btns.innerHTML = `
+                <button class="modal-btn decline" onclick="doReset()">[ YES ]</button>
+                <button class="modal-btn" onclick="cancelReset()">[ NO ]</button>
+            `;
+            document.getElementById('privacy-modal').style.display = 'flex';
+        }
+
+        function doReset() {
+            try { localStorage.removeItem('neonShadows_completed'); localStorage.removeItem('neonShadows_sound'); localStorage.removeItem('neonShadows_privacy'); } catch(e) {}
+            location.reload();
+        }
+
+        function cancelReset() {
+            playSFX('click');
+            document.getElementById('privacy-modal').style.display = 'none';
         }
 
         function saveProgress() {
@@ -447,6 +496,14 @@
             }
         }
 
+        function triggerFullscreenIfNeeded() {
+            if (selectedHardware === 'tv' || selectedHardware === 'touch') {
+                if (!document.fullscreenElement && document.documentElement.requestFullscreen) { 
+                    document.documentElement.requestFullscreen().catch(e => console.log(e)); 
+                }
+            }
+        }
+
         // --- MATRIX RAIN CYBERPUNK ---
         function createMatrix(id) {
             const canvas = document.getElementById(id);
@@ -486,101 +543,96 @@
 
         const LANG_TEXTS = {
             it: {
-                chooseLang: "SELEZIONA LINGUA DI SISTEMA", start: "AVVIA COLLEGAMENTO", alertChoose: "Scegli una lingua!", confirmReset: "Sei sicuro di voler cancellare i salvataggi?", 
+                chooseLang: "SELEZIONA LINGUA", sysTitle: "CONTROLLI DI SISTEMA", confirmReset: "Sei sicuro di voler cancellare tutti i salvataggi?", 
                 subtitle: "INFILTRATION PROTOCOL v2.0", cityLabel: "NODO", dataLabel: "DATI", levelLabel: "LVL", statusMap: "SCANSIONE MAPPA", statusInfiltration: "INFILTRAZIONE ATTIVA", statusHit: "SISTEMA BLOCCATO", statusComplete: "ACCESSO GARANTITO", 
                 msgHit: "FIREWALL ATTIVATO!\n\nSEI STATO BLOCCATO DALLA SICUREZZA.\n\n>>> PREMI [INVIO] O [ACT] PER RIPROVARE.", msgComplete: "DATI DECRIPTATI E SALVATI!\n\nINFILTRAZIONE COMPLETATA CON SUCCESSO.\n\n>>> PREMI [INVIO] O [ACT] PER CONTINUARE.",
                 introText: "INIZIALIZZAZIONE SISTEMA...\n\nOBIETTIVO: INFILTRARSI NEI NODI E RUBARE I DATI (GIALLO).\nATTENZIONE: EVITARE I PROGRAMMI DI SICUREZZA (MAGENTA).\nAZIONE: PULSANTE ACT O TASTO INVIO.\n\n>>> PREMI [INVIO] O TOCCA LO SCHERMO PER ACCEDERE.", 
                 msgBossLose: "ATTENZIONE!\n\nLA NAVICELLA È STATA DISTRUTTA DAI FIREWALL GEOMETRICI.\n\n>>> PREMI [INVIO] O [ACT] PER RIAVVIARE IL CORE.", msgBossWin: "CRITICO: SISTEMA COMPROMESSO.\nIA CENTRALE DISTRUTTA.\nTUTTI I DATI SONO STATI RECUPERATI CON SUCCESSO.\n\nSEI UN VERO NEON SPECTER.\n\n[ FINE DELLA TRASMISSIONE ]",
-                privTitle: "PROTOCOLLO DI SICUREZZA: PRIVACY", privDesc: "Questo terminale richiede l'accesso alla memoria (Local Storage) per salvare i progressi e le impostazioni. Consenti l'accesso?", privAccept: "[ ACCETTA ]", privDecline: "[ RIFIUTA ]", privWarning: "ATTENZIONE: Il sistema opererà in memoria volatile (RAM). I progressi non verranno salvati.",
-                hwTitle: "SELEZIONA HARDWARE", hwDesc: "Scegli il tuo dispositivo per ottimizzare la visuale.", hwPC: "[ PC ]", hwGamepad: "[ GAMEPAD ]", hwTouch: "[ TOUCH ]", hwTV: "[ SMART TV ]", 
-                instPC: "> Visuale standard. Controlli touch a schermo disabilitati. Usa WASD / Frecce.", instGamepad: "> Visuale standard. Controlli touch nascosti in automatico. Usa Levetta e Tasto Azione.", instTouch: "> Forza l'apparizione del Joystick virtuale e tasto ACT a schermo.", instTV: "> Interfaccia ingrandita (150%) per visione a distanza. Usa le Frecce del telecomando."
+                privTitle: "PROTOCOLLO DI SICUREZZA", privDesc: "Questo terminale richiede l'accesso al Local Storage per salvare i progressi dell'operazione e le impostazioni. Consenti l'accesso alla memoria?", privAccept: "[ ACCETTA ]", privDecline: "[ RIFIUTA ]", privWarning: "ATTENZIONE: Modalità incognita attivata. Il sistema opererà in memoria volatile (RAM) e i progressi non verranno salvati al riavvio.",
+                hwTitle: "SELEZIONA HARDWARE", hwPC: "[ PC ]", hwGamepad: "[ GAMEPAD ]", hwTouch: "[ TOUCH ]", hwTV: "[ SMART TV ]"
             },
             en: {
-                chooseLang: "SELECT SYSTEM LANGUAGE", start: "INITIATE LINK", alertChoose: "Choose a language!", confirmReset: "Are you sure you want to reset all progress?", 
+                chooseLang: "SELECT SYSTEM LANGUAGE", sysTitle: "SYSTEM CONTROLS", confirmReset: "Are you sure you want to reset all progress?", 
                 subtitle: "INFILTRATION PROTOCOL v2.0", cityLabel: "NODE", dataLabel: "DATA", levelLabel: "LVL", statusMap: "SCANNING MAP", statusInfiltration: "ACTIVE INFILTRATION", statusHit: "SYSTEM LOCKED", statusComplete: "ACCESS GRANTED", 
                 msgHit: "FIREWALL TRIGGERED!\n\nYOU HAVE BEEN LOCKED OUT BY SECURITY.\n\n>>> PRESS [ENTER] OR [ACT] TO RETRY.", msgComplete: "DATA DECRYPTED AND SAVED!\n\nINFILTRATION COMPLETED SUCCESSFULLY.\n\n>>> PRESS [ENTER] OR [ACT] TO CONTINUE.",
                 introText: "SYSTEM INITIALIZATION...\n\nOBJECTIVE: INFILTRATE NODES AND STEAL DATA (YELLOW).\nWARNING: AVOID SECURITY PROGRAMS (MAGENTA).\nACTION: ACT BUTTON OR ENTER KEY.\n\n>>> PRESS [ENTER] OR TOUCH SCREEN TO ACCESS.", 
                 msgBossLose: "WARNING!\n\nSHIP DESTROYED BY GEOMETRIC FIREWALLS.\n\n>>> PRESS [ENTER] OR [ACT] TO REBOOT THE CORE.", msgBossWin: "CRITICAL: SYSTEM COMPROMISED.\nCENTRAL AI DESTROYED.\nALL DATA SECURED.\n\nYOU ARE A TRUE NEON SPECTER.\n\n[ END OF TRANSMISSION ]",
-                privTitle: "SECURITY PROTOCOL: PRIVACY", privDesc: "This terminal requires access to Local Storage to save progress. Allow memory access?", privAccept: "[ ACCEPT ]", privDecline: "[ DECLINE ]", privWarning: "WARNING: System will operate in volatile mode (RAM). Progress will not be saved.",
-                hwTitle: "HARDWARE INTERFACE", hwDesc: "Select your input device to optimize the system display.", hwPC: "[ PC ]", hwGamepad: "[ GAMEPAD ]", hwTouch: "[ TOUCH ]", hwTV: "[ SMART TV ]", 
-                instPC: "> Standard display. On-screen touch controls disabled. Use WASD / Arrows.", instGamepad: "> Standard display. Touch controls auto-hidden. Use Left Stick and Action Button.", instTouch: "> Forces on-screen Virtual Joystick and ACT button.", instTV: "> UI enlarged (150%) for distant viewing. Use Remote Control D-Pad."
+                privTitle: "SECURITY PROTOCOL", privDesc: "This terminal requires access to Local Storage to save progress. Allow memory access?", privAccept: "[ ACCEPT ]", privDecline: "[ DECLINE ]", privWarning: "WARNING: Incognito mode active. System will operate in volatile mode (RAM). Progress will not be saved.",
+                hwTitle: "HARDWARE INTERFACE", hwPC: "[ PC ]", hwGamepad: "[ GAMEPAD ]", hwTouch: "[ TOUCH ]", hwTV: "[ SMART TV ]"
             },
             fr: {
-                chooseLang: "SÉLECTIONNER LA LANGUE", start: "INITIER LE LIEN", alertChoose: "Choisis une langue !", confirmReset: "Voulez-vous vraiment réinitialiser la progression ?", 
+                chooseLang: "SÉLECTIONNER LA LANGUE", sysTitle: "CONTRÔLES SYSTÈME", confirmReset: "Voulez-vous vraiment réinitialiser la progression ?", 
                 subtitle: "PROTOCOLE D'INFILTRATION v2.0", cityLabel: "NŒUD", dataLabel: "DONNÉES", levelLabel: "LVL", statusMap: "ANALYSE CARTE", statusInfiltration: "INFILTRATION ACTIVE", statusHit: "SYSTÈME VERROUILLÉ", statusComplete: "ACCÈS AUTORISÉ", 
                 msgHit: "PARE-FEU ACTIVÉ !\n\nVOUS AVEZ ÉTÉ BLOQUÉ PAR LA SÉCURITÉ.\n\n>>> APPUYEZ SUR [ENTRÉE] OU [ACT] POUR RÉESSAYER.", msgComplete: "DONNÉES DÉCRYPTÉES ET SAUVEGARDÉES !\n\nINFILTRATION TERMINÉE.\n\n>>> APPUYEZ SUR [ENTRÉE] OU [ACT].",
                 introText: "INITIALISATION DU SYSTÈME...\n\nOBJECTIF : INFILTRER LES NŒUDS ET VOLER LES DONNÉES (JAUNE).\nATTENTION : ÉVITER LES PROGRAMMES DE SÉCURITÉ (MAGENTA).\nACTION : BOUTON ACT OU TOUCHE ENTRÉE.\n\n>>> APPUYEZ SUR [ENTRÉE] OU TOUCHEZ L'ÉCRAN.", 
                 msgBossLose: "ATTENTION !\n\nLE VAISSEAU A ÉTÉ DÉTRUIT PAR LES PARE-FEUX.\n\n>>> APPUYEZ SUR [ENTRÉE] OU [ACT] POUR REDÉMARRER.", msgBossWin: "CRITIQUE : SYSTÈME COMPROMIS.\nIA CENTRALE DÉTRUITE.\nTOUTES LES DONNÉES ONT ÉTÉ SÉCURISÉES.\n\nVOUS ÊTES UN VRAI NEON SPECTER.\n\n[ FIN DE TRANSMISSION ]",
                 privTitle: "PROTOCOLE DE CONFIDENTIALITÉ", privDesc: "Ce terminal nécessite l'accès au Local Storage. Autoriser ?", privAccept: "[ ACCEPTER ]", privDecline: "[ REFUSER ]", privWarning: "ATTENTION: Mode volatil (RAM). La progression ne sera pas sauvegardée.",
-                hwTitle: "INTERFACE MATÉRIELLE", hwDesc: "Sélectionnez votre appareil pour optimiser l'affichage.", hwPC: "[ PC ]", hwGamepad: "[ MANETTE ]", hwTouch: "[ TACTILE ]", hwTV: "[ SMART TV ]", 
-                instPC: "> Affichage standard. Commandes tactiles désactivées. Utilisez WASD / Flèches.", instGamepad: "> Affichage standard. Tactile masqué. Utilisez le Joystick et le Bouton d'Action.", instTouch: "> Force le Joystick virtuel et le bouton ACT à l'écran.", instTV: "> Interface agrandie (150%) pour la télévision. Utilisez la télécommande."
+                hwTitle: "INTERFACE MATÉRIELLE", hwPC: "[ PC ]", hwGamepad: "[ MANETTE ]", hwTouch: "[ TACTILE ]", hwTV: "[ SMART TV ]"
             },
             es: {
-                chooseLang: "SELECCIONAR IDIOMA", start: "INICIAR ENLACE", alertChoose: "¡Elige un idioma!", confirmReset: "¿Seguro que quieres restablecer el progreso?", 
+                chooseLang: "SELECCIONAR IDIOMA", sysTitle: "CONTROLES DEL SISTEMA", confirmReset: "¿Seguro que quieres restablecer el progreso?", 
                 subtitle: "PROTOCOLO DE INFILTRACIÓN v2.0", cityLabel: "NODO", dataLabel: "DATOS", levelLabel: "LVL", statusMap: "ESCANEO MAPA", statusInfiltration: "INFILTRACIÓN ACTIVA", statusHit: "SISTEMA BLOQUEADO", statusComplete: "ACCESO CONCEDIDO", 
                 msgHit: "¡CORTAFUEGOS ACTIVADO!\n\nHAS SIDO BLOQUEADO POR LA SEGURIDAD.\n\n>>> PRESIONA [ENTER] O [ACT] PARA REINTENTAR.", msgComplete: "¡DATOS DESCIFRADOS Y GUARDADOS!\n\nINFILTRACIÓN COMPLETADA CON ÉXITO.\n\n>>> PRESIONA [ENTER] O [ACT].",
                 introText: "INICIALIZACIÓN DEL SISTEMA...\n\nOBJETIVO: INFILTRARSE Y ROBAR DATOS (AMARILLO).\nADVERTENCIA: EVITAR SEGURIDAD (MAGENTA).\nACCIÓN: BOTÓN ACT O TECLA ENTER.\n\n>>> PRESIONA [ENTER] O TOCA LA PANTALLA.", 
                 msgBossLose: "¡ADVERTENCIA!\n\nLA NAVE FUE DESTRUIDA.\n\n>>> PRESIONA [ENTER] O [ACT] PARA REINICIAR EL NÚCLEO.", msgBossWin: "CRÍTICO: SISTEMA COMPROMETIDO.\nIA CENTRAL DESTRUIDA.\nTODOS LOS DATOS ASEGURADOS.\n\nERES UN VERDADERO NEON SPECTER.\n\n[ FIN DE LA TRANSMISIÓN ]",
-                privTitle: "PROTOCOLO DE PRIVACIDAD", privDesc: "Se requiere acceso al Local Storage para guardar el progreso. ¿Permitir acceso?", privAccept: "[ ACEPTAR ]", privDecline: "[ RECHAZAR ]", privWarning: "ADVERTENCIA: El sistema operará en modo volátil (RAM).",
-                hwTitle: "INTERFAZ DE HARDWARE", hwDesc: "Seleccione su dispositivo para optimizar la visualización.", hwPC: "[ PC ]", hwGamepad: "[ MANDO ]", hwTouch: "[ TÁCTIL ]", hwTV: "[ SMART TV ]", 
-                instPC: "> Pantalla estándar. Controles táctiles desactivados. Usa WASD / Flechas.", instGamepad: "> Pantalla estándar. Táctil oculto automáticamente. Usa Joystick y Botón Acción.", instTouch: "> Fuerza el Joystick virtual y el botón ACT en pantalla.", instTV: "> Interfaz ampliada (150%) para TV. Usa el control remoto."
+                privTitle: "PROTOCOLO DE PRIVACIDAD", privDesc: "Se requiere acceso al Local Storage para guardar el progreso. ¿Permitir acceso?", privAccept: "[ ACEPTAR ]", privDecline: "[ RECHAZAR ]", privWarning: "ADVERTENCIA: El sistema operará en modo volátil (RAM). No se guardará el progreso.",
+                hwTitle: "INTERFAZ DE HARDWARE", hwPC: "[ PC ]", hwGamepad: "[ MANDO ]", hwTouch: "[ TÁCTIL ]", hwTV: "[ SMART TV ]"
             },
             de: {
-                chooseLang: "SYSTEMSPRACHE WÄHLEN", start: "LINK STARTEN", alertChoose: "Wähle eine Sprache!", confirmReset: "Möchten Sie den gesamten Fortschritt zurücksetzen?", 
+                chooseLang: "SYSTEMSPRACHE WÄHLEN", sysTitle: "SYSTEMSTEUERUNG", confirmReset: "Möchten Sie den gesamten Fortschritt zurücksetzen?", 
                 subtitle: "INFILTRATIONS-PROTOKOLL v2.0", cityLabel: "KNOTEN", dataLabel: "DATEN", levelLabel: "LVL", statusMap: "KARTE SCANNEN", statusInfiltration: "AKTIVE INFILTRATION", statusHit: "SYSTEM GESPERRT", statusComplete: "ZUGRIFF GEWÄHRT", 
                 msgHit: "FIREWALL AUSGELÖST!\n\nDU WURDEST GESPERRT.\n\n>>> DRÜCKE [ENTER] ODER [ACT] FÜR NEUVERSUCH.", msgComplete: "DATEN ENTSCHLÜSSELT!\n\nINFILTRATION ERFOLGREICH.\n\n>>> DRÜCKE [ENTER] ODER [ACT].",
                 introText: "SYSTEMINITIALISIERUNG...\n\nZIEL: KNOTEN INFILTRIEREN UND DATEN STEHLEN (GELB).\nWARNUNG: SICHERHEITSPROGRAMME VERMEIDEN (MAGENTA).\nAKTION: ACT-TASTE ODER ENTER.\n\n>>> DRÜCKE [ENTER] ODER BERÜHRE DEN BILDSCHIRM.", 
                 msgBossLose: "WARNUNG!\n\nSCHIFF WURDE ZERSTÖRT.\n\n>>> DRÜCKE [ENTER] ODER [ACT] ZUM NEUSTART.", msgBossWin: "KRITISCH: SYSTEM KOMPROMITTIERT.\nZENTRALE KI ZERSTÖRT.\nALLE DATEN GESICHERT.\n\nDU BIST EIN WAHRER NEON SPECTER.\n\n[ ENDE DER ÜBERTRAGUNG ]",
                 privTitle: "DATENSCHUTZPROTOKOLL", privDesc: "Speicherzugriff erforderlich, um Fortschritte zu speichern. Erlauben?", privAccept: "[ AKZEPTIEREN ]", privDecline: "[ ABLEHNEN ]", privWarning: "WARNUNG: Flüchtiger Modus (RAM). Fortschritt wird nicht gespeichert.",
-                hwTitle: "HARDWARE-SCHNITTSTELLE", hwDesc: "Wählen Sie Ihr Gerät, um die Anzeige zu optimieren.", hwPC: "[ PC ]", hwGamepad: "[ GAMEPAD ]", hwTouch: "[ TOUCH ]", hwTV: "[ SMART TV ]", 
-                instPC: "> Standardanzeige. Touch-Steuerung deaktiviert. Nutze WASD / Pfeiltasten.", instGamepad: "> Standardanzeige. Touch ausgeblendet. Nutze Stick und Aktionstaste.", instTouch: "> Erzwingt virtuellen Joystick und ACT-Taste auf dem Bildschirm.", instTV: "> Benutzeroberfläche vergrößert (150%) für Fernseher. Nutze die Fernbedienung."
+                hwTitle: "HARDWARE-SCHNITTSTELLE", hwPC: "[ PC ]", hwGamepad: "[ GAMEPAD ]", hwTouch: "[ TOUCH ]", hwTV: "[ SMART TV ]"
+            },
+            ja: {
+                chooseLang: "システム言語を選択", sysTitle: "システム制御", confirmReset: "すべての進行状況をリセットしますか？",
+                subtitle: "潜入プロトコル v2.0", cityLabel: "ノード", dataLabel: "データ", levelLabel: "LVL", statusMap: "マップスキャン中", statusInfiltration: "潜入中", statusHit: "システムロック", statusComplete: "アクセス許可",
+                msgHit: "ファイアウォール作動！\n\nセキュリティによりブロックされました。\n\n>>> [ENTER] または [ACT] を押して再試行。", msgComplete: "データの復号と保存完了！\n\n潜入成功。\n\n>>> [ENTER] または [ACT] を押して続行。",
+                introText: "システム初期化中...\n\n目的：ノードに潜入しデータを盗む（黄色）。\n警告：セキュリティプログラムを回避せよ（マゼンタ）。\nアクション：ACTボタンまたはENTERキー。\n\n>>> [ENTER] または画面をタッチしてアクセス。",
+                msgBossLose: "警告！\n\n幾何学ファイアウォールにより船が破壊されました。\n\n>>> [ENTER] または [ACT] でコアを再起動。", msgBossWin: "クリティカル：システム侵害。\n中央AI破壊完了。\n全データ確保。\n\nあなたは真のNEON SPECTERです。\n\n[ 送信終了 ]",
+                privTitle: "プライバシー", privDesc: "この端末は進行状況を保存するためにローカルストレージへのアクセスを必要とします。アクセスを許可しますか？", privAccept: "[ 許可 ]", privDecline: "[ 拒否 ]", privWarning: "警告：システムは揮発性メモリ（RAM）で動作します。進行状況は保存されません。",
+                hwTitle: "ハードウェア", hwPC: "[ PC ]", hwGamepad: "[ パッド ]", hwTouch: "[ タッチ ]", hwTV: "[ TV ]"
+            },
+            zh: {
+                chooseLang: "选择系统语言", sysTitle: "系统控制", confirmReset: "您确定要重置所有进度吗？",
+                subtitle: "潜入协议 v2.0", cityLabel: "节点", dataLabel: "数据", levelLabel: "LVL", statusMap: "扫描地图", statusInfiltration: "潜入中", statusHit: "系统锁定", statusComplete: "允许访问",
+                msgHit: "防火墙已触发！\n\n您已被安全系统锁定。\n\n>>> 按 [ENTER] 或 [ACT] 重试。", msgComplete: "数据已解密并保存！\n\n潜入成功。\n\n>>> 按 [ENTER] 或 [ACT] 继续。",
+                introText: "系统初始化中...\n\n目标：潜入节点并窃取数据（黄色）。\n警告：避开安全程序（洋红色）。\n操作：ACT按钮或ENTER键。\n\n>>> 按 [ENTER] 或触摸屏幕进行访问。",
+                msgBossLose: "警告！\n\n飞船被几何防火墙摧毁。\n\n>>> 按 [ENTER] 或 [ACT] 重启核心。", msgBossWin: "严重：系统受损。\n中央AI已被摧毁。\n所有数据已安全获取。\n\n你是真正的 NEON SPECTER。\n\n[ 传输结束 ]",
+                privTitle: "隐私协议", privDesc: "此终端需要访问本地存储以保存进度。是否允许访问？", privAccept: "[ 接受 ]", privDecline: "[ 拒绝 ]", privWarning: "警告：系统将在易失模式（RAM）下运行。进度不会被保存。",
+                hwTitle: "硬件接口", hwPC: "[ 电脑 ]", hwGamepad: "[ 手柄 ]", hwTouch: "[ 触控 ]", hwTV: "[ 电视 ]"
             }
         };
 
         function applyLangTexts() {
             const t = LANG_TEXTS[currentLang];
             document.getElementById("lang-title").textContent = t.chooseLang;
-            document.getElementById("start-btn").textContent = t.start;
             document.getElementById("subtitle").textContent = t.subtitle;
+            document.getElementById("sys-title").textContent = t.sysTitle;
+            
+            document.getElementById("hw-title-home").textContent = t.hwTitle;
+            document.getElementById("hw-btn-touch").textContent = t.hwTouch.replace(/[\[\]]/g, '').trim();
+            document.getElementById("hw-btn-pc").textContent = t.hwPC.replace(/[\[\]]/g, '').trim();
+            document.getElementById("hw-btn-tv").textContent = t.hwTV.replace(/[\[\]]/g, '').trim();
+            document.getElementById("hw-btn-gp").textContent = t.hwGamepad.replace(/[\[\]]/g, '').trim();
         }
 
         function selectLang(lang, element) {
-            initAudio(); playSFX('click'); 
-            currentLang = lang; languageChosen = true;
-            document.querySelectorAll('.lang-item').forEach(el => el.classList.remove('selected'));
-            element.classList.add('selected'); 
-            document.getElementById("start-btn").classList.add("active");
-            applyLangTexts();
-        }
-
-        // --- FLUSSO MODALI AGGIORNATO ---
-        function startGameClick() {
-            initAudio();
-            if (!languageChosen) { alert(LANG_TEXTS[currentLang].alertChoose); return; }
-            playSFX('click');
+            initAudio(); 
+            playSFX('click'); 
+            currentLang = lang; 
+            languageChosen = true;
             
-            // Popola modale Hardware
-            const t = LANG_TEXTS[currentLang];
-            document.getElementById('hw-title').textContent = t.hwTitle;
-            document.getElementById('hw-desc').textContent = t.hwDesc;
-            document.getElementById('hw-btn-pc').textContent = t.hwPC;
-            document.getElementById('hw-btn-gp').textContent = t.hwGamepad;
-            document.getElementById('hw-btn-touch').textContent = t.hwTouch;
-            document.getElementById('hw-btn-tv').textContent = t.hwTV;
-            document.getElementById('hw-instructions').textContent = "..."; // Reset
-
-            document.getElementById('hardware-modal').style.display = 'flex';
-        }
-
-        function showHWInstructions(type) {
-            playSFX('hover');
-            const t = LANG_TEXTS[currentLang];
-            let msg = "";
-            if(type === 'pc') msg = t.instPC;
-            if(type === 'gamepad') msg = t.instGamepad;
-            if(type === 'touch') msg = t.instTouch;
-            if(type === 'tv') msg = t.instTV;
-            document.getElementById('hw-instructions').textContent = msg;
+            document.querySelectorAll('#lang-grid-home .lang-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected'); 
+            applyLangTexts();
+            
+            const hwSelection = document.getElementById("hw-selection");
+            hwSelection.style.display = "flex";
+            hwSelection.style.animation = "fadeIn 0.5s ease-in-out";
         }
 
         function selectHardware(type) {
@@ -592,33 +644,59 @@
             if (type === 'tv') document.body.classList.add('tv-mode');
             if (type === 'touch') document.body.classList.add('touch-mode');
 
-            document.getElementById('hardware-modal').style.display = 'none';
             showPrivacyModal();
         }
 
         function showPrivacyModal() {
             if (privacyConsented === null) {
                 const t = LANG_TEXTS[currentLang];
+                
+                // Ricostruisce il modale originale della privacy in caso fosse stato usato per il reset
                 document.getElementById('priv-title').textContent = t.privTitle;
-                document.getElementById('priv-desc').textContent = t.privDesc;
+                document.getElementById('priv-title').style.color = "var(--neon-cyan)";
+                document.getElementById('priv-desc').innerHTML = t.privDesc;
+                
+                const btns = document.querySelector('.modal-btns');
+                btns.innerHTML = `
+                    <button class="modal-btn decline" id="btn-decline" onclick="declinePrivacy()">[ RIFIUTA ]</button>
+                    <button class="modal-btn" id="btn-accept" onclick="acceptPrivacy()">[ ACCETTA ]</button>
+                `;
                 document.getElementById('btn-accept').textContent = t.privAccept;
                 document.getElementById('btn-decline').textContent = t.privDecline;
+                
                 document.getElementById('privacy-modal').style.display = 'flex';
             } else {
+                triggerFullscreenIfNeeded(); // Trigger immediato
                 proceedToGame();
             }
         }
 
         function acceptPrivacy() {
-            playSFX('click'); allowStorage = true; privacyConsented = 'true';
+            playSFX('click'); 
+            triggerFullscreenIfNeeded(); // Trigger immediato richiesto dai browser mobili
+            
+            allowStorage = true; privacyConsented = 'true';
             try { localStorage.setItem('neonShadows_privacy', 'true'); localStorage.setItem('neonShadows_sound', soundEnabled); localStorage.setItem('neonShadows_completed', JSON.stringify(completedCities)); } catch(e) {}
             document.getElementById('privacy-modal').style.display = 'none';
             proceedToGame();
         }
 
         function declinePrivacy() {
-            playSFX('click'); allowStorage = false; privacyConsented = 'false';
-            alert(LANG_TEXTS[currentLang].privWarning);
+            playSFX('click'); 
+            allowStorage = false; privacyConsented = 'false';
+            
+            // Sostituito l'alert() nativo con una visualizzazione interna al modale
+            document.getElementById('priv-title').textContent = "SYSTEM WARNING";
+            document.getElementById('priv-title').style.color = "var(--neon-yellow)";
+            document.getElementById('priv-desc').textContent = LANG_TEXTS[currentLang].privWarning;
+            
+            const btns = document.querySelector('.modal-btns');
+            btns.innerHTML = `<button class="modal-btn" onclick="forceProceedGame()">[ CONTINUA ]</button>`;
+        }
+
+        function forceProceedGame() {
+            playSFX('click');
+            triggerFullscreenIfNeeded(); // Trigger immediato richiesto dai browser mobili
             document.getElementById('privacy-modal').style.display = 'none';
             proceedToGame();
         }
@@ -630,11 +708,6 @@
             document.getElementById("game-screen").style.display = "flex";
             initGame();
             startTypewriter();
-
-            // Auto-fullscreen per TV o Mobile se supportato
-            if (selectedHardware === 'tv' || selectedHardware === 'touch') {
-                if (!document.fullscreenElement) { try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } catch(e){} }
-            }
         }
 
         const WIDTH = 1600, HEIGHT = 900;
@@ -975,25 +1048,55 @@
             update(dt); draw(); requestAnimationFrame(gameLoop);
         }
 
+        // ==========================================
+        // INPUT CONTROLLER ESTESO
+        // ==========================================
         function updateGamepad() {
-            if (selectedHardware === 'pc') return; // Se PC forzato, non legge gamepad
+            if (selectedHardware === 'pc') return; 
+            
             const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            const gp = gamepads[0]; 
             const touchControls = document.getElementById('touch-controls');
+            let gamepadFound = false;
 
-            if (gp && gp.connected) {
-                if (touchControls && selectedHardware !== 'touch') touchControls.style.display = 'none';
+            gpX = 0; gpY = 0;
 
-                gpX = Math.abs(gp.axes[0]) > 0.2 ? gp.axes[0] : 0;
-                gpY = Math.abs(gp.axes[1]) > 0.2 ? gp.axes[1] : 0;
-                gpActPressed = gp.buttons[0].pressed || (gp.buttons.length > 7 && gp.buttons[7].pressed);
+            for (let i = 0; i < gamepads.length; i++) {
+                const gp = gamepads[i];
+                
+                if (gp && gp.connected && gp.axes.length >= 2) {
+                    gamepadFound = true;
+                    if (touchControls && selectedHardware !== 'touch') touchControls.style.display = 'none';
 
-                if (gpActPressed && !gpActWasPressed) { handleActionKey('Enter'); actButtonPressed = true; } 
-                else if (!gpActPressed && gpActWasPressed) { actButtonPressed = false; }
-                gpActWasPressed = gpActPressed;
-            } else {
-                if (touchControls && selectedHardware !== 'pc') touchControls.style.display = '';
-                gpX = 0; gpY = 0;
+                    gpX = Math.abs(gp.axes[0]) > 0.2 ? gp.axes[0] : 0;
+                    gpY = Math.abs(gp.axes[1]) > 0.2 ? gp.axes[1] : 0;
+
+                    if (gpX === 0 && gp.axes.length >= 4) gpX = Math.abs(gp.axes[2]) > 0.2 ? gp.axes[2] : 0;
+                    if (gpY === 0 && gp.axes.length >= 4) gpY = Math.abs(gp.axes[3]) > 0.2 ? gp.axes[3] : 0;
+
+                    if (gp.buttons[12] && gp.buttons[12].pressed) gpY = -1; // Su
+                    if (gp.buttons[13] && gp.buttons[13].pressed) gpY = 1;  // Giù
+                    if (gp.buttons[14] && gp.buttons[14].pressed) gpX = -1; // Sinistra
+                    if (gp.buttons[15] && gp.buttons[15].pressed) gpX = 1;  // Destra
+
+                    let currentActPressed = (gp.buttons[0] && gp.buttons[0].pressed) || 
+                                            (gp.buttons[1] && gp.buttons[1].pressed) || 
+                                            (gp.buttons[2] && gp.buttons[2].pressed) || 
+                                            (gp.buttons[3] && gp.buttons[3].pressed) || 
+                                            (gp.buttons.length > 7 && gp.buttons[7] && gp.buttons[7].pressed); 
+
+                    if (currentActPressed && !gpActWasPressed) { 
+                        handleActionKey('Enter'); 
+                        actButtonPressed = true; 
+                    } else if (!currentActPressed && gpActWasPressed) { 
+                        actButtonPressed = false; 
+                    }
+                    gpActWasPressed = currentActPressed;
+                    break; 
+                }
+            }
+
+            if (!gamepadFound && touchControls && selectedHardware !== 'pc') {
+                touchControls.style.display = '';
             }
         }
 
@@ -1124,7 +1227,7 @@
                     gCtx.clearRect(0, 0, WIDTH, HEIGHT); gCtx.strokeStyle = PALETTE.pink; gCtx.shadowColor = PALETTE.pink; gCtx.shadowBlur = 20; gCtx.lineWidth = 5;
                     gCtx.beginPath(); gCtx.arc(WIDTH/2, HEIGHT/2 - 40, 60 + Math.sin(Date.now()/200)*15, 0, Math.PI * 2); gCtx.stroke();
                     gCtx.fillStyle = PALETTE.pink; gCtx.font = "30px 'Orbitron', sans-serif"; gCtx.textAlign = "center"; gCtx.fillText(">>> ENGAGE AI CORE <<<", WIDTH/2, HEIGHT/2 + 50);
-                    gCtx.fillStyle = "#fff"; gCtx.font = "20px 'Orbitron', sans-serif"; gCtx.fillText("[ " + LANG_TEXTS[currentLang].start + " / ACT ]", WIDTH/2, HEIGHT/2 + 90);
+                    gCtx.fillStyle = "#fff"; gCtx.font = "20px 'Orbitron', sans-serif"; gCtx.fillText("[ INVIA / ACT ]", WIDTH/2, HEIGHT/2 + 90);
                     gCtx.shadowBlur = 0; gCtx.textAlign = "left";
                 } else { gCtx.fillStyle = PALETTE.bgDeep; gCtx.fillRect(0, 0, WIDTH, HEIGHT); drawMap(); if (gameState !== "MAP") drawLabyrinth(); }
                 particles.forEach(p => { gCtx.globalAlpha = Math.max(0, p.life); gCtx.fillStyle = p.color; gCtx.fillRect(p.x, p.y, 6, 6); }); gCtx.globalAlpha = 1.0; TerminalHack.draw(gCtx);
@@ -1197,9 +1300,39 @@
             }
         }
 
-        window.addEventListener('keydown', e => { keys[e.key] = true; handleActionKey(e.key); });
-        window.addEventListener('keyup', e => keys[e.key] = false);
-        window.onload = () => { applyLangTexts(); document.getElementById('sound-btn').textContent = soundEnabled ? "[🔊 ON]" : "[🔇 OFF]"; };
+        const tvKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Escape", "Backspace", " ", "GoBack", "BrowserBack", "MediaPlayPause", "Return"];
+        
+        window.addEventListener('keydown', e => {
+            if (tvKeys.includes(e.key)) {
+                if (gameState !== "INTRO") e.preventDefault(); 
+            }
+            
+            let keyToUse = e.key;
+            if (["GoBack", "BrowserBack", "Return", "Backspace"].includes(e.key)) keyToUse = "Escape";
+            if (["MediaPlayPause", " "].includes(e.key)) keyToUse = "Enter";
+            
+            keys[keyToUse] = true; 
+            handleActionKey(keyToUse); 
+        }, { passive: false });
+
+        window.addEventListener('keyup', e => {
+            if (tvKeys.includes(e.key)) e.preventDefault(); 
+            let keyToUse = e.key;
+            if (["GoBack", "BrowserBack", "Return", "Backspace"].includes(e.key)) keyToUse = "Escape";
+            if (["MediaPlayPause", " "].includes(e.key)) keyToUse = "Enter";
+            
+            keys[keyToUse] = false;
+        });
+
+        window.onload = () => { 
+            applyLangTexts(); 
+            
+            const iconStr = soundEnabled ? "🔊" : "🔇";
+            const textStr = soundEnabled ? "ON" : "OFF";
+            if(document.getElementById('sound-icon-home')) document.getElementById('sound-icon-home').textContent = iconStr;
+            if(document.getElementById('sound-text-home')) document.getElementById('sound-text-home').textContent = textStr;
+            if(document.getElementById('hud-sound-icon')) document.getElementById('hud-sound-icon').textContent = iconStr;
+        };
     </script>
 </body>
 </html>
